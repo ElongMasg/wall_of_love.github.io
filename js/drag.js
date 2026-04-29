@@ -1,20 +1,17 @@
 // Pointer-events drag engine for wall items
 let activeDrag = null;
 
-export function initDrag(wallEl, onDragEnd) {
+export function initDrag() {
   document.addEventListener('pointermove', onPointerMove);
   document.addEventListener('pointerup', onPointerUp);
   document.addEventListener('pointercancel', onPointerUp);
 }
 
 export function makeDraggable(el, opts = {}) {
-  // opts: { onStart, onMove, onEnd, getTransform }
   el.addEventListener('pointerdown', (e) => {
     if (e.button !== 0) return;
-    const locked = el.closest('[data-locked="true"]');
-    if (locked) return;
+    if (el.dataset.locked === 'true') return;
 
-    // Don't drag if clicking a button or handle inside item toolbar
     if (e.target.closest('.item-toolbar') ||
         e.target.closest('.resize-handle') ||
         e.target.closest('.rotate-handle') ||
@@ -23,9 +20,13 @@ export function makeDraggable(el, opts = {}) {
     e.preventDefault();
     e.stopPropagation();
 
-    const rect = el.getBoundingClientRect();
-    const offsetX = e.clientX - rect.left;
-    const offsetY = e.clientY - rect.top;
+    // Use stored left/top instead of getBoundingClientRect to avoid rotation distortion
+    const wall = el.parentElement;
+    const wallRect = wall.getBoundingClientRect();
+    const elLeft = parseFloat(el.style.left) || 0;
+    const elTop  = parseFloat(el.style.top)  || 0;
+    const offsetX = e.clientX - wallRect.left - elLeft;
+    const offsetY = e.clientY - wallRect.top  - elTop;
 
     activeDrag = { el, offsetX, offsetY, opts };
     el.setPointerCapture(e.pointerId);
@@ -41,20 +42,18 @@ function onPointerMove(e) {
   const wall = el.parentElement;
   const wallRect = wall.getBoundingClientRect();
 
+  // Use the element's natural (un-rotated) dimensions for clamping
+  const w = el.offsetWidth;
+  const h = el.offsetHeight;
+
   let x = e.clientX - wallRect.left - offsetX;
-  let y = e.clientY - wallRect.top - offsetY;
+  let y = e.clientY - wallRect.top  - offsetY;
 
-  // Clamp to wall bounds
-  x = Math.max(0, Math.min(x, wallRect.width - el.offsetWidth));
-  y = Math.max(0, Math.min(y, wall.scrollHeight - el.offsetHeight));
-
-  // Preserve existing rotation from the CSS transform
-  const current = el.style.transform || '';
-  const rotateMatch = current.match(/rotate\(([^)]+)\)/);
-  const rotate = rotateMatch ? ` rotate(${rotateMatch[1]})` : '';
+  x = Math.max(0, Math.min(x, wallRect.width  - w));
+  y = Math.max(0, Math.min(y, wall.scrollHeight - h));
 
   el.style.left = x + 'px';
-  el.style.top = y + 'px';
+  el.style.top  = y + 'px';
 
   opts.onMove && opts.onMove(x, y, e);
 }
@@ -62,12 +61,9 @@ function onPointerMove(e) {
 function onPointerUp(e) {
   if (!activeDrag) return;
   const { el, opts } = activeDrag;
-
   el.classList.remove('dragging');
-
   const x = parseFloat(el.style.left) || 0;
-  const y = parseFloat(el.style.top) || 0;
-
+  const y = parseFloat(el.style.top)  || 0;
   opts.onEnd && opts.onEnd(x, y, e);
   activeDrag = null;
 }
@@ -103,14 +99,25 @@ export function makeRotatable(handle, el, onRotate) {
     e.preventDefault();
     handle.setPointerCapture(e.pointerId);
 
+    // Record the angle offset between current pointer position and current rotation
+    // so the element doesn't jump on first move
+    const rect = el.getBoundingClientRect();
+    const cx = rect.left + rect.width  / 2;
+    const cy = rect.top  + rect.height / 2;
+    const pointerAngle = Math.atan2(e.clientY - cy, e.clientX - cx) * (180 / Math.PI) + 90;
+    const currentRotation = parseFloat(
+      (el.style.transform || '').match(/rotate\(([-\d.]+)deg\)/)?.[1] ?? 0
+    );
+    const angleOffset = currentRotation - pointerAngle;
+
     const onMove = (ev) => {
-      const rect = el.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-      const angle = Math.atan2(ev.clientY - cy, ev.clientX - cx) * (180 / Math.PI) + 90;
-      const rounded = Math.round(angle);
-      el.style.transform = `rotate(${rounded}deg)`;
-      onRotate && onRotate(rounded);
+      const r = el.getBoundingClientRect();
+      const ccx = r.left + r.width  / 2;
+      const ccy = r.top  + r.height / 2;
+      const raw = Math.atan2(ev.clientY - ccy, ev.clientX - ccx) * (180 / Math.PI) + 90;
+      const angle = Math.round(raw + angleOffset);
+      el.style.transform = `rotate(${angle}deg)`;
+      onRotate && onRotate(angle);
     };
     const onUp = () => {
       document.removeEventListener('pointermove', onMove);

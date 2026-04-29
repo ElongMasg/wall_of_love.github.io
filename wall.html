@@ -111,6 +111,26 @@
       height: 100%;
       object-fit: cover;
     }
+    .photo-thumb { position: relative; }
+    .photo-thumb-delete {
+      display: none;
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(200,40,40,0.85);
+      color: #fff;
+      font-size: 14px;
+      line-height: 1;
+      border: none;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
+    }
+    .photo-thumb:hover .photo-thumb-delete { display: flex; }
 
     /* Anniversary rows */
     .ann-row {

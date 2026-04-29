@@ -92,6 +92,19 @@ function initPhotoModal() {
   });
 
   grid.addEventListener('click', (e) => {
+    // Delete button
+    const delBtn = e.target.closest('.photo-thumb-delete');
+    if (delBtn) {
+      e.stopPropagation();
+      const idx = parseInt(delBtn.dataset.index);
+      const config = storage.getConfig();
+      const season = getCurrentSeason();
+      config.photos[season].splice(idx, 1);
+      storage.setConfig(config);
+      populatePhotoGrid(grid);
+      return;
+    }
+    // Add to wall
     const thumb = e.target.closest('[data-src]');
     if (!thumb) return;
     addPhoto(thumb.dataset.src);
@@ -110,6 +123,7 @@ function populatePhotoGrid(grid) {
   grid.innerHTML = photos.map((src, i) => `
     <div class="photo-thumb" data-src="${src}" data-index="${i}" title="点击添加到照片墙">
       <img src="${src}" alt="">
+      <button class="photo-thumb-delete" data-index="${i}" title="从库中删除">×</button>
     </div>
   `).join('');
 }
