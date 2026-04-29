@@ -2,6 +2,7 @@ import storage from './storage.js';
 import { initWall, getSeasonLabel, getCurrentSeason } from './wall.js';
 import { initUI } from './ui.js';
 import { checkAnniversaries } from './banner.js';
+import { initDrag } from './drag.js';
 
 async function main() {
   // Load/seed defaults
@@ -21,6 +22,7 @@ async function main() {
   const label = document.getElementById('seasonLabel');
   if (label) label.textContent = getSeasonLabel(season);
 
+  initDrag();
   initWall(canvas, season);
   initUI();
   checkAnniversaries();

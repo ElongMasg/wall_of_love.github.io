@@ -29,7 +29,6 @@ export function makeDraggable(el, opts = {}) {
     const offsetY = e.clientY - wallRect.top  - elTop;
 
     activeDrag = { el, offsetX, offsetY, opts };
-    el.setPointerCapture(e.pointerId);
     el.classList.add('dragging');
     opts.onStart && opts.onStart(e);
   });
