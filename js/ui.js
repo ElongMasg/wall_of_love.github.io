@@ -61,8 +61,8 @@ function initPhotoModal() {
     if (e.target === modal) modal.classList.remove('open');
   });
 
-  document.getElementById('addPhotoBtn').addEventListener('click', () => {
-    populatePhotoGrid(grid);
+  document.getElementById('addPhotoBtn').addEventListener('click', async () => {
+    await populatePhotoGrid(grid);
     modal.classList.add('open');
   });
 
@@ -74,10 +74,18 @@ function initPhotoModal() {
   });
 }
 
-function populatePhotoGrid(grid) {
-  const config = storage.getConfig();
+async function populatePhotoGrid(grid) {
+  // Fetch config.json directly so photo list is always up to date
+  let photos = [];
   const season = getCurrentSeason();
-  const photos = config?.photos?.[season] || [];
+  try {
+    const res = await fetch('data/config.json');
+    const data = await res.json();
+    photos = data?.photos?.[season] || [];
+  } catch {
+    photos = storage.getConfig()?.photos?.[season] || [];
+  }
+
   if (!photos.length) {
     grid.innerHTML = `
       <div style="color:#7a6a5a;text-align:center;padding:24px;line-height:1.8">

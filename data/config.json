@@ -4,7 +4,15 @@
   ],
   "defaultSeason": "spring",
   "photos": {
-    "spring": [],
+    "spring": [
+      "assets/photos/spring/huadeng1.jpg",
+      "assets/photos/spring/huadeng2.jpg",
+      "assets/photos/spring/luxungonguan1.jpg",
+      "assets/photos/spring/nanjing1.jpg",
+      "assets/photos/spring/qiuqian.png",
+      "assets/photos/spring/vr1.jpg",
+      "assets/photos/spring/yindufan.jpg"
+    ],
     "summer": [],
     "autumn": [],
     "winter": []
