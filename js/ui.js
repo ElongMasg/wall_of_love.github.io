@@ -3,14 +3,13 @@ import storage from './storage.js';
 import { FRAMES } from './frames.js';
 import {
   addPhoto, addTextbox, lockAll, unlockAll,
-  updateSelectedFrame, updateBackground, getCurrentSeason
+  updateSelectedFrame, getCurrentSeason
 } from './wall.js';
 
 export function initUI() {
   initFramePicker();
   initPhotoModal();
   initSettingsModal();
-  initUploadBackground();
   initToolbarButtons();
   listenItemSelected();
 }
@@ -42,7 +41,6 @@ function listenItemSelected() {
     if (!panel) return;
     if (item?.type === 'photo') {
       panel.classList.add('open');
-      // Highlight current frame
       panel.querySelectorAll('.frame-option').forEach(opt => {
         opt.classList.toggle('active', opt.dataset.frame === item.frame);
       });
@@ -57,33 +55,10 @@ function initPhotoModal() {
   const modal = document.getElementById('photoModal');
   const closeBtn = modal.querySelector('.modal-close');
   const grid = document.getElementById('photoGrid');
-  const uploadBtn = document.getElementById('uploadPhotoBtn');
-  const fileInput = document.getElementById('photoFileInput');
 
   closeBtn.addEventListener('click', () => modal.classList.remove('open'));
   modal.addEventListener('click', (e) => {
     if (e.target === modal) modal.classList.remove('open');
-  });
-
-  // Upload new photo
-  uploadBtn.addEventListener('click', () => fileInput.click());
-  fileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const src = ev.target.result;
-      // Save to config photos list
-      const config = storage.getConfig();
-      const season = getCurrentSeason();
-      if (!config.photos[season]) config.photos[season] = [];
-      config.photos[season].push(src);
-      storage.setConfig(config);
-      addPhoto(src);
-      modal.classList.remove('open');
-    };
-    reader.readAsDataURL(file);
-    fileInput.value = '';
   });
 
   document.getElementById('addPhotoBtn').addEventListener('click', () => {
@@ -92,19 +67,6 @@ function initPhotoModal() {
   });
 
   grid.addEventListener('click', (e) => {
-    // Delete button
-    const delBtn = e.target.closest('.photo-thumb-delete');
-    if (delBtn) {
-      e.stopPropagation();
-      const idx = parseInt(delBtn.dataset.index);
-      const config = storage.getConfig();
-      const season = getCurrentSeason();
-      config.photos[season].splice(idx, 1);
-      storage.setConfig(config);
-      populatePhotoGrid(grid);
-      return;
-    }
-    // Add to wall
     const thumb = e.target.closest('[data-src]');
     if (!thumb) return;
     addPhoto(thumb.dataset.src);
@@ -117,32 +79,21 @@ function populatePhotoGrid(grid) {
   const season = getCurrentSeason();
   const photos = config?.photos?.[season] || [];
   if (!photos.length) {
-    grid.innerHTML = '<p style="color:#7a6a5a;text-align:center;padding:20px">暂无照片，点击上方"上传照片"按钮添加</p>';
+    grid.innerHTML = `
+      <div style="color:#7a6a5a;text-align:center;padding:24px;line-height:1.8">
+        <p>暂无照片</p>
+        <p style="font-size:0.8rem;margin-top:8px">
+          将图片放入 <code>assets/photos/${season}/</code><br>
+          并在 <code>data/config.json</code> 的 <code>photos.${season}</code> 中添加路径
+        </p>
+      </div>`;
     return;
   }
-  grid.innerHTML = photos.map((src, i) => `
-    <div class="photo-thumb" data-src="${src}" data-index="${i}" title="点击添加到照片墙">
-      <img src="${src}" alt="">
-      <button class="photo-thumb-delete" data-index="${i}" title="从库中删除">×</button>
+  grid.innerHTML = photos.map(src => `
+    <div class="photo-thumb" data-src="${src}" title="点击添加到照片墙">
+      <img src="${src}" alt="" loading="lazy">
     </div>
   `).join('');
-}
-
-// ── Background upload ────────────────────────────────────
-function initUploadBackground() {
-  const input = document.getElementById('bgFileInput');
-  const btn = document.getElementById('uploadBgBtn');
-  btn.addEventListener('click', () => input.click());
-  input.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      updateBackground(ev.target.result);
-    };
-    reader.readAsDataURL(file);
-    input.value = '';
-  });
 }
 
 // ── Settings modal (anniversaries) ──────────────────────
@@ -218,7 +169,6 @@ function initToolbarButtons() {
   document.getElementById('lockAllBtn').addEventListener('click', lockAll);
   document.getElementById('unlockAllBtn').addEventListener('click', unlockAll);
 
-  // Season selector
   const seasonSelect = document.getElementById('seasonSelect');
   if (seasonSelect) {
     seasonSelect.addEventListener('change', (e) => {

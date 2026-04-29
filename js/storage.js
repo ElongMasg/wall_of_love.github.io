@@ -1,4 +1,4 @@
-// localStorage helpers
+// localStorage helpers — photo images live in assets/, only paths are stored
 const PREFIX = 'lifewall:';
 
 const storage = {
@@ -12,8 +12,10 @@ const storage = {
   set(key, value) {
     try {
       localStorage.setItem(PREFIX + key, JSON.stringify(value));
+      return true;
     } catch (e) {
       console.warn('Storage write failed:', e);
+      return false;
     }
   },
 
@@ -43,40 +45,40 @@ const storage = {
     return z;
   },
 
+  // Always reload photo list and backgrounds from config.json so adding files
+  // to assets/ + editing config.json is reflected without clearing localStorage.
   async loadDefaults() {
     try {
       const res = await fetch('data/config.json');
       const data = await res.json();
-      if (!this.getConfig()) {
-        this.setConfig({
-          anniversaries: data.anniversaries || [],
-          defaultSeason: data.defaultSeason || 'spring',
-          photos: data.photos || { spring:[], summer:[], autumn:[], winter:[] },
-          backgrounds: data.backgrounds || { spring:'', summer:'', autumn:'', winter:'' },
-        });
-      }
-      // Seed items for seasons that have none
+
+      const existing = this.getConfig();
+      this.set('config', {
+        anniversaries: existing?.anniversaries ?? data.anniversaries ?? [],
+        defaultSeason: data.defaultSeason ?? 'spring',
+        // Photo list always comes from config.json (source of truth)
+        photos: data.photos ?? { spring:[], summer:[], autumn:[], winter:[] },
+        // Background paths always come from config.json
+        backgrounds: data.backgrounds ?? { spring:'', summer:'', autumn:'', winter:'' },
+      });
+
       for (const season of ['spring','summer','autumn','winter']) {
         if (!this.get(`${season}:items`)) {
-          const defaults = (data.defaultItems || {})[season] || [];
-          this.setItems(season, defaults);
+          this.set(`${season}:items`, (data.defaultItems ?? {})[season] ?? []);
         }
       }
-      return this.getConfig();
     } catch (e) {
       console.warn('Could not load config.json:', e);
       if (!this.getConfig()) {
-        const defaultConfig = {
+        this.set('config', {
           anniversaries: [],
           defaultSeason: 'spring',
           photos: { spring:[], summer:[], autumn:[], winter:[] },
           backgrounds: { spring:'', summer:'', autumn:'', winter:'' },
-        };
-        this.setConfig(defaultConfig);
-        return defaultConfig;
+        });
       }
-      return this.getConfig();
     }
+    return this.getConfig();
   }
 };
 

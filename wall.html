@@ -172,9 +172,6 @@
       font-weight: bold;
       white-space: nowrap;
     }
-
-    /* Hidden file inputs */
-    #photoFileInput, #bgFileInput { display: none; }
   </style>
 </head>
 <body class="wall-page">
@@ -193,7 +190,6 @@
   <div class="toolbar-divider"></div>
   <button class="toolbar-btn primary" id="addPhotoBtn">＋ 添加照片</button>
   <button class="toolbar-btn" id="addTextBtn">＋ 文字</button>
-  <button class="toolbar-btn" id="uploadBgBtn">🖼 背景</button>
   <div class="toolbar-divider"></div>
   <button class="toolbar-btn" id="lockAllBtn">🔒 全部锁定</button>
   <button class="toolbar-btn" id="unlockAllBtn">🔓 全部解锁</button>
@@ -217,9 +213,6 @@
       <h2>添加照片</h2>
       <button class="modal-close">×</button>
     </div>
-    <div class="modal-actions">
-      <button class="btn btn-primary" id="uploadPhotoBtn">📷 上传新照片</button>
-    </div>
     <div class="photo-grid-container" id="photoGrid"></div>
   </div>
 </div>
@@ -241,10 +234,6 @@
     </div>
   </div>
 </div>
-
-<!-- Hidden file inputs -->
-<input type="file" id="photoFileInput" accept="image/*">
-<input type="file" id="bgFileInput" accept="image/*">
 
 <script type="module" src="js/app.js"></script>
 </body>

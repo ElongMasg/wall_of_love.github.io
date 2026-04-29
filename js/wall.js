@@ -37,7 +37,6 @@ function applyBackground() {
   if (bg) {
     wallEl.style.backgroundImage = `url('${bg}')`;
   } else {
-    // Fallback gradients
     const gradients = {
       spring: 'linear-gradient(135deg, #fce4ec 0%, #f8bbd0 50%, #fce4ec 100%)',
       summer: 'linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 50%, #e8f5e9 100%)',
@@ -46,14 +45,6 @@ function applyBackground() {
     };
     wallEl.style.backgroundImage = gradients[season] || gradients.spring;
   }
-}
-
-export function updateBackground(url) {
-  const config = storage.getConfig();
-  if (!config) return;
-  config.backgrounds[season] = url;
-  storage.setConfig(config);
-  applyBackground();
 }
 
 function renderAll() {

@@ -50,10 +50,11 @@
     if (!config?.backgrounds) return;
     const seasons = ['spring','summer','autumn','winter'];
     for (const s of seasons) {
-      const bg = config.backgrounds[s];
-      if (bg) {
+      const bgKey = config.backgrounds[s];
+      if (bgKey) {
+        const bg = storage.resolvePhotoSrc(bgKey);
         const el = document.getElementById(`bg-${s}`);
-        if (el) el.style.backgroundImage = `url('${bg}')`;
+        if (el && bg) el.style.backgroundImage = `url('${bg}')`;
       }
     }
   }

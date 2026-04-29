@@ -29,14 +29,34 @@ lifewall_web/
 
 ## 使用说明
 
-### 添加照片
-1. 进入对应季节的照片墙
-2. 点击顶部「**＋ 添加照片**」按钮
-3. 点击「**上传新照片**」选择本地图片，或点击已有图片添加到墙上
+### 添加照片（方案 A：存 GitHub）
 
-### 更换背景
-1. 点击顶部「**🖼 背景**」按钮
-2. 选择一张图片作为当前季节的背景
+1. 将图片文件放入对应季节的文件夹：
+   ```
+   assets/photos/spring/photo1.jpg
+   assets/photos/summer/beach.jpg
+   ```
+2. 编辑 `data/config.json`，在对应季节的数组里添加路径：
+   ```json
+   "photos": {
+     "spring": ["assets/photos/spring/photo1.jpg"],
+     "summer": ["assets/photos/summer/beach.jpg"]
+   }
+   ```
+3. `git push` 后，在网站点击「**＋ 添加照片**」即可看到并使用
+
+### 设置背景图
+
+编辑 `data/config.json` 的 `backgrounds` 字段：
+```json
+"backgrounds": {
+  "spring": "assets/backgrounds/spring/bg.jpg",
+  "summer": "",
+  "autumn": "",
+  "winter": ""
+}
+```
+将背景图放入对应文件夹后 push 即生效。
 
 ### 设置相框
 1. 点击选中一张照片
