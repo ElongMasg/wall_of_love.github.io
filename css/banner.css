@@ -1,0 +1,103 @@
+/* Anniversary banner */
+.anniversary-banner {
+  position: fixed;
+  top: calc(var(--toolbar-height) + 12px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-120px);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  border-radius: 50px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 6px 32px rgba(0,0,0,0.18);
+  z-index: 9500;
+  min-width: 280px;
+  max-width: 90vw;
+  animation: bannerSlideIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.anniversary-banner.exit {
+  animation: bannerSlideOut 0.5s ease forwards;
+}
+
+@keyframes bannerSlideIn {
+  to { transform: translateX(-50%) translateY(0); }
+}
+
+@keyframes bannerSlideOut {
+  to { transform: translateX(-50%) translateY(-120px); opacity: 0; }
+}
+
+.banner-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+  animation: bannerPulse 2s ease-in-out infinite;
+}
+
+@keyframes bannerPulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.15); }
+}
+
+.banner-text {
+  flex: 1;
+}
+
+.banner-text strong {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  color: #3a2a1a;
+}
+
+.banner-text span {
+  display: block;
+  font-size: 0.82rem;
+  color: #7a6a5a;
+  margin-top: 2px;
+}
+
+.banner-close {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 16px;
+  color: #7a6a5a;
+  flex-shrink: 0;
+  transition: background var(--transition);
+}
+
+.banner-close:hover {
+  background: rgba(0,0,0,0.08);
+  color: #3a2a1a;
+}
+
+.banner-accent-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  border-radius: 50px 0 0 50px;
+}
+
+/* Floating confetti particles on banner show */
+.confetti-particle {
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 9400;
+  animation: confettiFall linear forwards;
+}
+
+@keyframes confettiFall {
+  0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}

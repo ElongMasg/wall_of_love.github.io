@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我们的照片墙</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/seasons.css">
+  <style>
+    body { background: linear-gradient(135deg, #fdf6ec 0%, #f0e6f6 100%); }
+  </style>
+</head>
+<body>
+<main class="landing">
+  <header class="landing-header">
+    <h1>我们的照片墙</h1>
+    <p>选择季节，开始你的故事</p>
+  </header>
+
+  <div class="season-grid">
+    <a class="season-card" href="wall.html?season=spring" data-season="spring">
+      <div class="season-card-bg" id="bg-spring"></div>
+      <div class="season-card-overlay"></div>
+      <div class="season-card-label">春 · Spring <span>花开的季节</span></div>
+    </a>
+    <a class="season-card" href="wall.html?season=summer" data-season="summer">
+      <div class="season-card-bg" id="bg-summer"></div>
+      <div class="season-card-overlay"></div>
+      <div class="season-card-label">夏 · Summer <span>阳光与海浪</span></div>
+    </a>
+    <a class="season-card" href="wall.html?season=autumn" data-season="autumn">
+      <div class="season-card-bg" id="bg-autumn"></div>
+      <div class="season-card-overlay"></div>
+      <div class="season-card-label">秋 · Autumn <span>枫叶的色彩</span></div>
+    </a>
+    <a class="season-card" href="wall.html?season=winter" data-season="winter">
+      <div class="season-card-bg" id="bg-winter"></div>
+      <div class="season-card-overlay"></div>
+      <div class="season-card-label">冬 · Winter <span>雪中的温暖</span></div>
+    </a>
+  </div>
+</main>
+
+<script type="module">
+  import storage from './js/storage.js';
+
+  async function loadBackgrounds() {
+    await storage.loadDefaults();
+    const config = storage.getConfig();
+    if (!config?.backgrounds) return;
+    const seasons = ['spring','summer','autumn','winter'];
+    for (const s of seasons) {
+      const bg = config.backgrounds[s];
+      if (bg) {
+        const el = document.getElementById(`bg-${s}`);
+        if (el) el.style.backgroundImage = `url('${bg}')`;
+      }
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', loadBackgrounds);
+</script>
+</body>
+</html>

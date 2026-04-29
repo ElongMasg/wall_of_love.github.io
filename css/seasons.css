@@ -1,0 +1,106 @@
+/* Landing page */
+.landing {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #fdf6ec 0%, #f0e6f6 100%);
+}
+
+.landing-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.landing-header h1 {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  color: #3a2a1a;
+  letter-spacing: 0.04em;
+}
+
+.landing-header p {
+  margin-top: 12px;
+  color: #7a6a5a;
+  font-size: 1.1rem;
+}
+
+.season-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  width: min(900px, 90vw);
+  padding: 0 16px 48px;
+}
+
+.season-card {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  aspect-ratio: 4/3;
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.season-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-lifted);
+}
+
+.season-card-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.5s ease;
+}
+
+.season-card:hover .season-card-bg {
+  transform: scale(1.04);
+}
+
+.season-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);
+}
+
+.season-card-label {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  color: #fff;
+  font-family: var(--font-serif);
+  font-size: 1.6rem;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.season-card-label span {
+  display: block;
+  font-size: 0.9rem;
+  font-family: var(--font-sans);
+  opacity: 0.85;
+  margin-top: 2px;
+}
+
+/* Season fallback gradients when no background is set */
+.season-card[data-season="spring"] .season-card-bg:not([style*="url"]) {
+  background: linear-gradient(135deg, #f9c5d1 0%, #f7e5c0 100%);
+}
+.season-card[data-season="summer"] .season-card-bg:not([style*="url"]) {
+  background: linear-gradient(135deg, #87ceeb 0%, #98fb98 100%);
+}
+.season-card[data-season="autumn"] .season-card-bg:not([style*="url"]) {
+  background: linear-gradient(135deg, #e8a87c 0%, #d4956a 100%);
+}
+.season-card[data-season="winter"] .season-card-bg:not([style*="url"]) {
+  background: linear-gradient(135deg, #b8d4e8 0%, #dce8f0 100%);
+}
+
+@media (max-width: 600px) {
+  .season-grid {
+    grid-template-columns: 1fr;
+  }
+}

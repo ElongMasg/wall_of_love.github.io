@@ -1,0 +1,24 @@
+{
+  "anniversaries": [
+    { "id": "a1", "label": "我们的纪念日", "month": 1, "day": 1, "color": "#e8a0bf", "note": "在一起的每一天都是礼物" }
+  ],
+  "defaultSeason": "spring",
+  "photos": {
+    "spring": [],
+    "summer": [],
+    "autumn": [],
+    "winter": []
+  },
+  "backgrounds": {
+    "spring": "",
+    "summer": "",
+    "autumn": "",
+    "winter": ""
+  },
+  "defaultItems": {
+    "spring": [],
+    "summer": [],
+    "autumn": [],
+    "winter": []
+  }
+}
