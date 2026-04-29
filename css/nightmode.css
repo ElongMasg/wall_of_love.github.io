@@ -1,0 +1,133 @@
+/* ── Night mode overlay ───────────────────────────────── */
+body.night-mode .toolbar {
+  background: rgba(20, 15, 10, 0.92);
+  box-shadow: 0 1px 12px rgba(0,0,0,0.5);
+}
+
+body.night-mode .toolbar-btn {
+  color: #c8a87a;
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.1);
+}
+
+body.night-mode .toolbar-btn:hover {
+  background: rgba(255,255,255,0.12);
+}
+
+body.night-mode .toolbar-btn.primary {
+  background: #5a3a1a;
+  color: #f0c080;
+  border-color: transparent;
+}
+
+body.night-mode .toolbar-season {
+  color: #c8a87a;
+}
+
+body.night-mode .toolbar-select {
+  background: rgba(30,20,10,0.8);
+  color: #c8a87a;
+  border-color: rgba(255,255,255,0.12);
+}
+
+/* Canvas overlay */
+#nightCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 500;
+  display: none;
+  border-radius: 0;
+}
+
+body.night-mode #nightCanvas {
+  display: block;
+}
+
+/* Spotlight fixture */
+.spotlight-fixture {
+  position: absolute;
+  z-index: 600;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+body.night-mode .spotlight-fixture {
+  display: flex;
+}
+
+.spotlight-fixture:active {
+  cursor: grabbing;
+}
+
+.fixture-head {
+  width: 28px;
+  height: 18px;
+  background: linear-gradient(180deg, #5a5a5a 0%, #3a3a3a 100%);
+  border-radius: 4px 4px 8px 8px;
+  border: 1px solid #222;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.fixture-head::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffe8a0 0%, #ffb840 60%, transparent 100%);
+  box-shadow: 0 0 6px 2px rgba(255,200,80,0.6);
+}
+
+.fixture-wire {
+  width: 2px;
+  height: 14px;
+  background: #444;
+  margin-top: -2px;
+}
+
+.fixture-delete {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(200,40,40,0.9);
+  color: #fff;
+  font-size: 10px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  line-height: 1;
+}
+
+.spotlight-fixture:hover .fixture-delete {
+  display: flex;
+}
+
+/* Add light button */
+#addLightBtn {
+  display: none;
+}
+
+body.night-mode #addLightBtn {
+  display: flex;
+}
+
+/* Night toggle button active state */
+#nightModeBtn.active {
+  background: #1a1208;
+  color: #f0c060;
+  border-color: #5a3a10;
+}

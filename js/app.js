@@ -3,28 +3,27 @@ import { initWall, getSeasonLabel, getCurrentSeason } from './wall.js';
 import { initUI } from './ui.js';
 import { checkAnniversaries } from './banner.js';
 import { initDrag } from './drag.js';
+import { initNightMode } from './nightmode.js';
 
 async function main() {
-  // Load/seed defaults
   await storage.loadDefaults();
 
   const params = new URLSearchParams(location.search);
   const season = params.get('season') || storage.getConfig()?.defaultSeason || 'spring';
 
   const canvas = document.getElementById('wallCanvas');
-  if (!canvas) return; // Not the wall page
+  if (!canvas) return;
 
-  // Set season on select
   const sel = document.getElementById('seasonSelect');
   if (sel) sel.value = season;
 
-  // Season label in toolbar
   const label = document.getElementById('seasonLabel');
   if (label) label.textContent = getSeasonLabel(season);
 
   initDrag();
   initWall(canvas, season);
   initUI();
+  initNightMode(canvas);
   checkAnniversaries();
 }
 
