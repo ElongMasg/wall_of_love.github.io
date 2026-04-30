@@ -3,7 +3,8 @@ import storage from './storage.js';
 import { FRAMES } from './frames.js';
 import {
   addPhoto, addTextbox, lockAll, unlockAll,
-  updateSelectedFrame, getCurrentSeason
+  updateSelectedFrame, getCurrentSeason, getCurrentPage,
+  goToPage, addPage, deletePage,
 } from './wall.js';
 
 export function initUI() {
@@ -11,12 +12,12 @@ export function initUI() {
   initPhotoModal();
   initSettingsModal();
   initToolbarButtons();
+  initPagination();
   listenItemSelected();
 }
 
 // ── Frame picker side panel ──────────────────────────────
 function initFramePicker() {
-  const panel = document.getElementById('framePicker');
   const list = document.getElementById('frameList');
   list.innerHTML = FRAMES.map(f => `
     <div class="frame-option" data-frame="${f.id}">
@@ -75,7 +76,6 @@ function initPhotoModal() {
 }
 
 async function populatePhotoGrid(grid) {
-  // Fetch config.json directly so photo list is always up to date
   let photos = [];
   const season = getCurrentSeason();
   try {
@@ -185,4 +185,39 @@ function initToolbarButtons() {
       location.href = `wall.html?${params}`;
     });
   }
+}
+
+// ── Pagination ───────────────────────────────────────────
+function initPagination() {
+  document.getElementById('prevPageBtn').addEventListener('click', () => {
+    goToPage(getCurrentPage() - 1);
+  });
+  document.getElementById('nextPageBtn').addEventListener('click', () => {
+    goToPage(getCurrentPage() + 1);
+  });
+  document.getElementById('addPageBtn').addEventListener('click', addPage);
+  document.getElementById('deletePageBtn').addEventListener('click', () => {
+    const count = storage.getPageCount(getCurrentSeason());
+    if (count <= 1) return;
+    if (confirm(`删除第 ${getCurrentPage()} 页？该页上的所有内容将被清除。`)) {
+      deletePage();
+    }
+  });
+
+  document.addEventListener('page-changed', updatePaginationUI);
+
+  updatePaginationUI({
+    detail: {
+      page: 1,
+      pageCount: storage.getPageCount(getCurrentSeason()),
+    }
+  });
+}
+
+function updatePaginationUI(e) {
+  const { page, pageCount } = e.detail;
+  document.getElementById('pageIndicator').textContent = `${page} / ${pageCount}`;
+  document.getElementById('prevPageBtn').disabled = page <= 1;
+  document.getElementById('nextPageBtn').disabled = page >= pageCount;
+  document.getElementById('deletePageBtn').disabled = pageCount <= 1;
 }

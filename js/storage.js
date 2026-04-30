@@ -23,12 +23,27 @@ const storage = {
     localStorage.removeItem(PREFIX + key);
   },
 
-  getItems(season) {
-    return this.get(`${season}:items`) || [];
+  // ── Page management ──────────────────────────────────────
+  // Page count per season (1-based, minimum 1)
+  getPageCount(season) {
+    return this.get(`${season}:pageCount`) || 1;
   },
 
-  setItems(season, items) {
-    this.set(`${season}:items`, items);
+  setPageCount(season, count) {
+    this.set(`${season}:pageCount`, Math.max(1, count));
+  },
+
+  getItems(season, page = 1) {
+    return this.get(`${season}:p${page}:items`) || [];
+  },
+
+  setItems(season, items, page = 1) {
+    this.set(`${season}:p${page}:items`, items);
+  },
+
+  // Remove all items stored for a specific page
+  removePageItems(season, page) {
+    this.remove(`${season}:p${page}:items`);
   },
 
   getConfig() {
@@ -63,8 +78,16 @@ const storage = {
       });
 
       for (const season of ['spring','summer','autumn','winter']) {
-        if (!this.get(`${season}:items`)) {
-          this.set(`${season}:items`, (data.defaultItems ?? {})[season] ?? []);
+        // Migrate legacy single-page data (season:items → season:p1:items)
+        const legacy = this.get(`${season}:items`);
+        if (legacy) {
+          if (!this.get(`${season}:p1:items`)) {
+            this.set(`${season}:p1:items`, legacy);
+          }
+          this.remove(`${season}:items`);
+        }
+        if (!this.get(`${season}:p1:items`)) {
+          this.set(`${season}:p1:items`, (data.defaultItems ?? {})[season] ?? []);
         }
       }
     } catch (e) {

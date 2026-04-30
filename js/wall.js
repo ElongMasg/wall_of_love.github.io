@@ -4,6 +4,7 @@ import { createPhotoElement, selectPhoto, applyFrame } from './photos.js';
 import { createTextboxElement, selectTextbox } from './textbox.js';
 
 let season = 'spring';
+let page = 1;
 let items = [];
 let selectedId = null;
 let wallEl = null;
@@ -18,7 +19,8 @@ const SEASON_LABELS = {
 export function initWall(canvasEl, currentSeason) {
   wallEl = canvasEl;
   season = currentSeason;
-  items = storage.getItems(season);
+  page = 1;
+  items = storage.getItems(season, page);
   renderAll();
   applyBackground();
 
@@ -48,7 +50,6 @@ function applyBackground() {
 }
 
 function renderAll() {
-  // Clear existing item elements (not toolbar or other fixed children)
   wallEl.querySelectorAll('.wall-item').forEach(el => el.remove());
   for (const item of items) {
     renderItem(item);
@@ -68,7 +69,7 @@ function renderItem(item) {
 function onItemUpdate(item) {
   const idx = items.findIndex(i => i.id === item.id);
   if (idx !== -1) items[idx] = item;
-  storage.setItems(season, items);
+  storage.setItems(season, items, page);
 }
 
 function onItemSelect(id) {
@@ -80,7 +81,6 @@ function onItemSelect(id) {
   const el = wallEl.querySelector(`[data-id="${id}"]`);
   if (!el) return;
 
-  // Bring to front
   const z = storage.nextZ();
   item.z = z;
   el.style.zIndex = z;
@@ -89,7 +89,6 @@ function onItemSelect(id) {
   if (item.type === 'photo') selectPhoto(el, true);
   else if (item.type === 'textbox') selectTextbox(el, true);
 
-  // Update frame picker panel if it's open
   document.dispatchEvent(new CustomEvent('item-selected', { detail: { item } }));
 }
 
@@ -98,7 +97,7 @@ function onItemDelete(id) {
   if (el) el.remove();
   items = items.filter(i => i.id !== id);
   selectedId = null;
-  storage.setItems(season, items);
+  storage.setItems(season, items, page);
   document.dispatchEvent(new CustomEvent('item-selected', { detail: { item: null } }));
 }
 
@@ -131,7 +130,7 @@ export function addPhoto(src) {
   };
   items.push(item);
   renderItem(item);
-  storage.setItems(season, items);
+  storage.setItems(season, items, page);
 }
 
 export function addTextbox() {
@@ -152,9 +151,8 @@ export function addTextbox() {
   };
   items.push(item);
   renderItem(item);
-  storage.setItems(season, items);
+  storage.setItems(season, items, page);
 
-  // Auto-select and focus the new textbox
   setTimeout(() => {
     onItemSelect(id);
     const el = wallEl.querySelector(`[data-id="${id}"]`);
@@ -170,13 +168,46 @@ export function addTextbox() {
 export function lockAll() {
   items.forEach(item => { item.locked = true; });
   renderAll();
-  storage.setItems(season, items);
+  storage.setItems(season, items, page);
 }
 
 export function unlockAll() {
   items.forEach(item => { item.locked = false; });
   renderAll();
-  storage.setItems(season, items);
+  storage.setItems(season, items, page);
+}
+
+// ── Pagination ───────────────────────────────────────────
+
+function loadPage(p) {
+  deselectAll();
+  page = p;
+  items = storage.getItems(season, page);
+  renderAll();
+  document.dispatchEvent(new CustomEvent('page-changed', {
+    detail: { page, pageCount: storage.getPageCount(season) }
+  }));
+}
+
+export function goToPage(p) {
+  const count = storage.getPageCount(season);
+  if (p < 1 || p > count) return;
+  loadPage(p);
+}
+
+export function addPage() {
+  const count = storage.getPageCount(season);
+  const newCount = count + 1;
+  storage.setPageCount(season, newCount);
+  loadPage(newCount);
+}
+
+export function deletePage() {
+  const count = storage.getPageCount(season);
+  if (count <= 1) return;
+  storage.removePageItems(season, count);
+  storage.setPageCount(season, count - 1);
+  loadPage(Math.min(page, count - 1));
 }
 
 export function getSelectedItem() {
@@ -194,4 +225,5 @@ export function updateSelectedFrame(frameId) {
 }
 
 export function getCurrentSeason() { return season; }
+export function getCurrentPage() { return page; }
 export function getSeasonLabel(s) { return SEASON_LABELS[s] || s; }

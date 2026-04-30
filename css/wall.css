@@ -198,8 +198,30 @@
   color: #fff;
 }
 
-.rotate-handle::after {
-  content: '↻';
-  font-size: 11px;
-  line-height: 1;
+/* Pagination controls */
+.page-indicator {
+  font-family: var(--font-serif);
+  font-size: 0.85rem;
+  color: #3a2a1a;
+  min-width: 44px;
+  text-align: center;
+  font-weight: 600;
+  letter-spacing: 0.03em;
 }
+
+.toolbar-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.toolbar-btn.danger {
+  color: #c0392b;
+  border-color: rgba(192,57,43,0.25);
+}
+
+.toolbar-btn.danger:hover {
+  background: rgba(220,60,60,0.1);
+}
+
+
