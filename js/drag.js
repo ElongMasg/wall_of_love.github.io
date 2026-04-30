@@ -14,8 +14,9 @@ export function makeDraggable(el, opts = {}) {
 
     if (e.target.closest('.item-toolbar') ||
         e.target.closest('.resize-handle') ||
-        e.target.closest('.rotate-handle') ||
-        e.target.closest('.textbox-content')) return;
+        e.target.closest('.rotate-handle')) return;
+    const tc = e.target.closest('.textbox-content');
+    if (tc && tc.contentEditable === 'true') return;
 
     e.preventDefault();
     e.stopPropagation();
