@@ -3,10 +3,11 @@ import storage from './storage.js';
 import { getCurrentSeason } from './wall.js';
 
 const STORAGE_KEY = 'nightmode:lights';
-const LIGHT_DEFAULTS = { r: 120, angle: 38, intensity: 0.92 };
+// angle: cone spread degrees, length multiplier increased for wider range
+const LIGHT = { angle: 52, lengthMult: 4.2, intensity: 0.95 };
 
 let canvas, ctx, wallEl, animFrameId;
-let lights = [];   // [{ id, x, y }]
+let lights = [];   // [{ id, x, y, rotation }]
 let isNight = false;
 
 // Snow
@@ -20,7 +21,6 @@ export function initNightMode(wall) {
 
   lights = storage.get(STORAGE_KEY) || [];
 
-  // Create snow canvas
   snowCanvas = document.createElement('canvas');
   snowCanvas.id = 'snowCanvas';
   snowCanvas.style.cssText = 'position:absolute;top:0;left:0;pointer-events:none;z-index:9999;';
@@ -30,7 +30,6 @@ export function initNightMode(wall) {
   document.getElementById('nightModeBtn').addEventListener('click', toggleNight);
   document.getElementById('addLightBtn').addEventListener('click', addLight);
 
-  // Render fixtures for persisted lights on load (hidden until night mode on)
   for (const light of lights) createFixtureEl(light);
 
   syncCanvasSize();
@@ -64,66 +63,79 @@ function syncCanvasSize() {
 
 function renderDarkness() {
   if (!isNight) return;
-
-  // Resize if needed
   if (canvas.width !== wallEl.offsetWidth || canvas.height !== wallEl.scrollHeight) {
     syncCanvasSize();
   }
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Dark base
   ctx.globalCompositeOperation = 'source-over';
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.82)';
+  ctx.fillStyle = 'rgba(0,0,0,0.85)';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Cut cone for each light using destination-out
   ctx.globalCompositeOperation = 'destination-out';
-  for (const light of lights) {
-    drawCone(light.x, light.y);
-  }
-
-  // Restore for next frame
+  for (const light of lights) drawCone(light);
   ctx.globalCompositeOperation = 'source-over';
 
   animFrameId = requestAnimationFrame(renderDarkness);
 }
 
-function drawCone(cx, cy) {
-  const halfAngle = (LIGHT_DEFAULTS.angle / 2) * Math.PI / 180;
-  const length = LIGHT_DEFAULTS.r * 3.2;
+function drawCone(light) {
+  const { x, y, rotation = 0 } = light;
+  const halfAngle = (LIGHT.angle / 2) * Math.PI / 180;
+  // Base radius ~120px, length is the cone reach
+  const length = 120 * LIGHT.lengthMult;
+  // rotation=0 means pointing straight down (Math.PI/2)
+  const dir = Math.PI / 2 + rotation * Math.PI / 180;
 
-  // Gradient: bright at source, fades out
-  const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, length);
-  grad.addColorStop(0,   `rgba(255,230,170, ${LIGHT_DEFAULTS.intensity})`);
-  grad.addColorStop(0.35, `rgba(255,210,120, ${LIGHT_DEFAULTS.intensity * 0.75})`);
-  grad.addColorStop(0.7,  `rgba(255,190,80,  ${LIGHT_DEFAULTS.intensity * 0.35})`);
-  grad.addColorStop(1,   'rgba(0,0,0,0)');
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(dir - Math.PI / 2);
+
+  // Main cone gradient — radial from tip, soft warm falloff
+  const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, length);
+  grad.addColorStop(0,    `rgba(255,235,180,${LIGHT.intensity})`);
+  grad.addColorStop(0.25, `rgba(255,220,140,${LIGHT.intensity * 0.82})`);
+  grad.addColorStop(0.55, `rgba(255,200,100,${LIGHT.intensity * 0.45})`);
+  grad.addColorStop(0.8,  `rgba(255,180,60, ${LIGHT.intensity * 0.15})`);
+  grad.addColorStop(1,    'rgba(0,0,0,0)');
 
   ctx.beginPath();
-  ctx.moveTo(cx, cy);
-  ctx.arc(cx, cy, length, Math.PI / 2 - halfAngle, Math.PI / 2 + halfAngle);
+  ctx.moveTo(0, 0);
+  ctx.arc(0, 0, length, Math.PI / 2 - halfAngle, Math.PI / 2 + halfAngle);
   ctx.closePath();
-
   ctx.fillStyle = grad;
   ctx.fill();
 
-  // Soft halo at the bulb
-  const halo = ctx.createRadialGradient(cx, cy, 0, cx, cy, 40);
-  halo.addColorStop(0, `rgba(255,230,170,${LIGHT_DEFAULTS.intensity})`);
+  // Soft edge blur — second wider, dimmer cone for natural penumbra
+  const penumbra = ctx.createRadialGradient(0, 0, length * 0.6, 0, 0, length * 1.15);
+  penumbra.addColorStop(0, `rgba(255,210,120,${LIGHT.intensity * 0.18})`);
+  penumbra.addColorStop(1, 'rgba(0,0,0,0)');
+  const pa = halfAngle * 1.35;
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.arc(0, 0, length * 1.15, Math.PI / 2 - pa, Math.PI / 2 + pa);
+  ctx.closePath();
+  ctx.fillStyle = penumbra;
+  ctx.fill();
+
+  // Bulb halo
+  const halo = ctx.createRadialGradient(0, 0, 0, 0, 0, 48);
+  halo.addColorStop(0, `rgba(255,240,200,${LIGHT.intensity})`);
+  halo.addColorStop(0.5, `rgba(255,220,150,${LIGHT.intensity * 0.4})`);
   halo.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.beginPath();
-  ctx.arc(cx, cy, 40, 0, Math.PI * 2);
+  ctx.arc(0, 0, 48, 0, Math.PI * 2);
   ctx.fillStyle = halo;
   ctx.fill();
+
+  ctx.restore();
 }
 
 function addLight() {
   const id = `light-${Date.now()}`;
-  // Place in center of current viewport
   const x = wallEl.offsetWidth / 2;
   const y = window.scrollY + 60;
-  const light = { id, x, y };
+  const light = { id, x, y, rotation: 0 };
   lights.push(light);
   saveLights();
   createFixtureEl(light);
@@ -138,12 +150,19 @@ function createFixtureEl(light) {
   el.innerHTML = `
     <div class="fixture-head">
       <button class="fixture-delete" title="删除">×</button>
+      <button class="fixture-rotate-left" title="向左旋转">↺</button>
+      <button class="fixture-rotate-right" title="向右旋转">↻</button>
     </div>
     <div class="fixture-wire"></div>
   `;
   wallEl.appendChild(el);
 
-  // Delete
+  // Update fixture visual tilt to match rotation
+  function applyTilt() {
+    el.querySelector('.fixture-wire').style.transform = `rotate(${light.rotation}deg)`;
+  }
+  applyTilt();
+
   el.querySelector('.fixture-delete').addEventListener('click', (e) => {
     e.stopPropagation();
     lights = lights.filter(l => l.id !== light.id);
@@ -152,11 +171,24 @@ function createFixtureEl(light) {
     renderDarkness();
   });
 
+  el.querySelector('.fixture-rotate-left').addEventListener('click', (e) => {
+    e.stopPropagation();
+    light.rotation = (light.rotation - 15 + 360) % 360;
+    applyTilt();
+    saveLights();
+  });
+
+  el.querySelector('.fixture-rotate-right').addEventListener('click', (e) => {
+    e.stopPropagation();
+    light.rotation = (light.rotation + 15) % 360;
+    applyTilt();
+    saveLights();
+  });
+
   // Drag
   let dragging = false, ox, oy;
-
   el.addEventListener('pointerdown', (e) => {
-    if (e.target.closest('.fixture-delete')) return;
+    if (e.target.closest('button')) return;
     e.preventDefault();
     e.stopPropagation();
     dragging = true;
@@ -174,7 +206,6 @@ function createFixtureEl(light) {
     light.y = Math.max(0, e.clientY - wallRect.top - oy);
     el.style.left = (light.x - 14) + 'px';
     el.style.top  = (light.y - 32) + 'px';
-    // renderDarkness runs in rAF loop, no need to call manually
   }
 
   function onUp() {

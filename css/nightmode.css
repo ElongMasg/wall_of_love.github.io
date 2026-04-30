@@ -112,7 +112,30 @@ body.night-mode .spotlight-fixture {
   line-height: 1;
 }
 
-.spotlight-fixture:hover .fixture-delete {
+.fixture-rotate-left,
+.fixture-rotate-right {
+  position: absolute;
+  bottom: -8px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(60,80,200,0.85);
+  color: #fff;
+  font-size: 10px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  line-height: 1;
+}
+
+.fixture-rotate-left  { left: -8px; }
+.fixture-rotate-right { right: -8px; }
+
+.spotlight-fixture:hover .fixture-delete,
+.spotlight-fixture:hover .fixture-rotate-left,
+.spotlight-fixture:hover .fixture-rotate-right {
   display: flex;
 }
 
