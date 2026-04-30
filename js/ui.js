@@ -176,15 +176,6 @@ function initToolbarButtons() {
   document.getElementById('addTextBtn').addEventListener('click', addTextbox);
   document.getElementById('lockAllBtn').addEventListener('click', lockAll);
   document.getElementById('unlockAllBtn').addEventListener('click', unlockAll);
-
-  const seasonSelect = document.getElementById('seasonSelect');
-  if (seasonSelect) {
-    seasonSelect.addEventListener('change', (e) => {
-      const params = new URLSearchParams(location.search);
-      params.set('season', e.target.value);
-      location.href = `wall.html?${params}`;
-    });
-  }
 }
 
 // ── Pagination ───────────────────────────────────────────
