@@ -1,5 +1,6 @@
 // Night mode: darkness overlay + draggable spotlights rendered on Canvas
 import storage from './storage.js';
+import { getCurrentSeason } from './wall.js';
 
 const STORAGE_KEY = 'nightmode:lights';
 const LIGHT_DEFAULTS = { r: 120, angle: 38, intensity: 0.92 };
@@ -8,6 +9,9 @@ let canvas, ctx, wallEl, animFrameId;
 let lights = [];   // [{ id, x, y }]
 let isNight = false;
 
+// Snow
+let snowCanvas, snowCtx, snowFlakes = [], snowAnimId;
+
 export function initNightMode(wall) {
   wallEl = wall;
 
@@ -15,6 +19,13 @@ export function initNightMode(wall) {
   ctx = canvas.getContext('2d');
 
   lights = storage.get(STORAGE_KEY) || [];
+
+  // Create snow canvas
+  snowCanvas = document.createElement('canvas');
+  snowCanvas.id = 'snowCanvas';
+  snowCanvas.style.cssText = 'position:absolute;top:0;left:0;pointer-events:none;z-index:9999;';
+  wallEl.appendChild(snowCanvas);
+  snowCtx = snowCanvas.getContext('2d');
 
   document.getElementById('nightModeBtn').addEventListener('click', toggleNight);
   document.getElementById('addLightBtn').addEventListener('click', addLight);
@@ -36,9 +47,11 @@ function toggleNight() {
   if (isNight) {
     syncCanvasSize();
     renderDarkness();
+    if (getCurrentSeason() === 'winter') startSnow();
   } else {
     cancelAnimationFrame(animFrameId);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    stopSnow();
   }
 }
 
@@ -175,4 +188,45 @@ function createFixtureEl(light) {
 
 function saveLights() {
   storage.set(STORAGE_KEY, lights);
+}
+
+function startSnow() {
+  snowCanvas.width  = wallEl.offsetWidth;
+  snowCanvas.height = wallEl.scrollHeight;
+  snowCanvas.style.width  = wallEl.offsetWidth + 'px';
+  snowCanvas.style.height = wallEl.scrollHeight + 'px';
+
+  snowFlakes = Array.from({ length: 120 }, () => ({
+    x: Math.random() * snowCanvas.width,
+    y: Math.random() * snowCanvas.height,
+    r: Math.random() * 3 + 1,
+    speed: Math.random() * 1.2 + 0.4,
+    drift: (Math.random() - 0.5) * 0.5,
+    opacity: Math.random() * 0.5 + 0.4,
+  }));
+
+  function tick() {
+    snowCtx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
+    snowCtx.fillStyle = '#fff';
+    for (const f of snowFlakes) {
+      snowCtx.globalAlpha = f.opacity;
+      snowCtx.beginPath();
+      snowCtx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+      snowCtx.fill();
+      f.y += f.speed;
+      f.x += f.drift;
+      if (f.y > snowCanvas.height) { f.y = -f.r; f.x = Math.random() * snowCanvas.width; }
+      if (f.x > snowCanvas.width)  f.x = 0;
+      if (f.x < 0) f.x = snowCanvas.width;
+    }
+    snowCtx.globalAlpha = 1;
+    snowAnimId = requestAnimationFrame(tick);
+  }
+  tick();
+}
+
+function stopSnow() {
+  cancelAnimationFrame(snowAnimId);
+  if (snowCtx) snowCtx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
+  snowFlakes = [];
 }
