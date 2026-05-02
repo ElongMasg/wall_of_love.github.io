@@ -28,36 +28,22 @@ export function initPlayer() {
   loadMusicFolder();
 }
 
-async function loadMusicFolder() {
-  let folder = 'assets/music/';
-  try {
-    const res = await fetch('data/config.json');
-    const data = await res.json();
-    folder = data.musicFolder || folder;
-  } catch {
-    // use default
-  }
+function loadMusicFolder() {
+  const config = storage.getConfig();
+  if (!config) return;
 
-  // Fetch directory listing via the config or assume common audio files
-  // For now, we'll scan for common audio extensions in the folder path
-  // Since we can't list a directory, we expose a mechanism to add tracks
-  // via the config.json: "musicTracks": ["file1.mp3", "file2.mp3"]
-  try {
-    const res = await fetch('data/config.json');
-    const data = await res.json();
-    if (data.musicTracks && data.musicTracks.length) {
-      tracks = data.musicTracks.map(t => ({
-        name: t.replace(/\.[^.]+$/, ''),
-        src: folder + t,
-      }));
-      updatePlaylistUI();
-      if (tracks.length && !audio.src) {
-        audio.src = tracks[0].src;
-        updateTrackDisplay();
-      }
+  const folder = config.musicFolder || 'assets/music/';
+  const trackFiles = config.musicTracks || [];
+
+  if (trackFiles.length) {
+    tracks = trackFiles.map(t => ({
+      name: t.replace(/\.[^.]+$/, ''),
+      src: folder + t,
+    }));
+    if (tracks.length && !audio.src) {
+      audio.src = tracks[0].src;
+      updateTrackDisplay();
     }
-  } catch {
-    // no tracks
   }
 }
 
@@ -137,6 +123,7 @@ export function createPlayerEl() {
 
   initPlayerDrag();
   syncPlayerUI();
+  updatePlaylistUI();
 
   return playerEl;
 }
