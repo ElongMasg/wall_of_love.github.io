@@ -75,6 +75,9 @@ const storage = {
         photos: data.photos ?? { spring:[], summer:[], autumn:[], winter:[] },
         // Background paths always come from config.json
         backgrounds: data.backgrounds ?? { spring:'', summer:'', autumn:'', winter:'' },
+        // Music folder and tracks
+        musicFolder: data.musicFolder ?? 'assets/music/',
+        musicTracks: data.musicTracks ?? [],
       });
 
       for (const season of ['spring','summer','autumn','winter']) {
