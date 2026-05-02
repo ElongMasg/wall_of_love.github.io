@@ -28,5 +28,7 @@
     "summer": [],
     "autumn": [],
     "winter": []
-  }
+  },
+  "musicFolder": "assets/music/",
+  "musicTracks": []
 }

@@ -4,6 +4,7 @@ import { initUI } from './ui.js';
 import { checkAnniversaries } from './banner.js';
 import { initDrag } from './drag.js';
 import { initNightMode } from './nightmode.js';
+import { initPlayer, createPlayerEl, showPlayer, isPlayerVisible, restorePlayer } from './player.js';
 
 async function main() {
   await storage.loadDefaults();
@@ -24,7 +25,18 @@ async function main() {
   initWall(canvas, season);
   initUI();
   initNightMode(canvas);
+  initPlayer();
   checkAnniversaries();
+
+  // Restore player if it was visible previously
+  restorePlayer();
+
+  // Add music player button
+  document.getElementById('addMusicBtn').addEventListener('click', () => {
+    if (isPlayerVisible()) return;
+    createPlayerEl();
+    showPlayer();
+  });
 }
 
 document.addEventListener('DOMContentLoaded', main);
