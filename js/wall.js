@@ -175,12 +175,14 @@ export function addEnvelope() {
   const scrollY = window.scrollY;
   const item = {
     id, type: 'envelope',
-    x: Math.random() * (wallEl.offsetWidth - 200) + 20,
+    x: Math.random() * (wallEl.offsetWidth - 180) + 20,
     y: scrollY + 150 + Math.random() * 150,
-    width: 180,
+    width: 160,
     rotation: (Math.random() * 6) - 3,
     letterContent: '',
-    opened: false,
+    fontFamily: 'Times New Roman, Georgia, serif',
+    fontSize: 17,
+    color: '#3a2a1a',
     locked: false,
     z: storage.nextZ(),
   };
@@ -191,16 +193,10 @@ export function addEnvelope() {
   setTimeout(() => {
     onItemSelect(id);
     const el = wallEl.querySelector(`[data-id="${id}"]`);
-    if (el) {
-      el.classList.add('opened');
-      item.opened = true;
-      const lc = el.querySelector('.letter-content');
-      if (lc) {
-        lc.contentEditable = 'true';
-        lc.focus();
-      }
+    if (el && el.querySelector('.envelope-view-btn')) {
+      el.querySelector('.envelope-view-btn').click();
     }
-  }, 50);
+  }, 80);
 }
 
 export function lockAll() {
