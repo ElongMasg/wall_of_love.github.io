@@ -2,6 +2,7 @@
 import storage from './storage.js';
 import { createPhotoElement, selectPhoto, applyFrame } from './photos.js';
 import { createTextboxElement, selectTextbox } from './textbox.js';
+import { createEnvelopeElement, selectEnvelope } from './envelope.js';
 
 let season = 'spring';
 let page = 1;
@@ -62,6 +63,8 @@ function renderItem(item) {
     el = createPhotoElement(item, season, onItemUpdate, onItemSelect, onItemDelete);
   } else if (item.type === 'textbox') {
     el = createTextboxElement(item, onItemUpdate, onItemSelect, onItemDelete);
+  } else if (item.type === 'envelope') {
+    el = createEnvelopeElement(item, onItemUpdate, onItemSelect, onItemDelete);
   }
   if (el) wallEl.appendChild(el);
 }
@@ -88,6 +91,7 @@ function onItemSelect(id) {
 
   if (item.type === 'photo') selectPhoto(el, true);
   else if (item.type === 'textbox') selectTextbox(el, true);
+  else if (item.type === 'envelope') selectEnvelope(el, true);
 
   document.dispatchEvent(new CustomEvent('item-selected', { detail: { item } }));
 }
@@ -108,6 +112,7 @@ function deselectAll() {
     const item = items.find(i => i.id === selectedId);
     if (item?.type === 'photo') selectPhoto(el, false);
     else if (item?.type === 'textbox') selectTextbox(el, false);
+    else if (item?.type === 'envelope') selectEnvelope(el, false);
   }
   selectedId = null;
   document.dispatchEvent(new CustomEvent('item-selected', { detail: { item: null } }));
@@ -161,6 +166,39 @@ export function addTextbox() {
       content.contentEditable = 'true';
       content.focus();
       content.textContent = '';
+    }
+  }, 50);
+}
+
+export function addEnvelope() {
+  const id = `env-${Date.now()}`;
+  const scrollY = window.scrollY;
+  const item = {
+    id, type: 'envelope',
+    x: Math.random() * (wallEl.offsetWidth - 200) + 20,
+    y: scrollY + 150 + Math.random() * 150,
+    width: 180,
+    rotation: (Math.random() * 6) - 3,
+    letterContent: '',
+    opened: false,
+    locked: false,
+    z: storage.nextZ(),
+  };
+  items.push(item);
+  renderItem(item);
+  storage.setItems(season, items, page);
+
+  setTimeout(() => {
+    onItemSelect(id);
+    const el = wallEl.querySelector(`[data-id="${id}"]`);
+    if (el) {
+      el.classList.add('opened');
+      item.opened = true;
+      const lc = el.querySelector('.letter-content');
+      if (lc) {
+        lc.contentEditable = 'true';
+        lc.focus();
+      }
     }
   }, 50);
 }

@@ -1,0 +1,223 @@
+/* Envelope wall item */
+.envelope-item {
+  min-width: 120px;
+  min-height: 100px;
+}
+
+/* Envelope body (closed shape) */
+.envelope-body {
+  position: relative;
+  width: 100%;
+  min-height: 90px;
+  background: linear-gradient(160deg, #f5ebe0 0%, #ece1d2 40%, #e0d3c3 100%);
+  border-radius: 0 0 8px 8px;
+  box-shadow:
+    0 2px 8px rgba(0,0,0,0.15),
+    inset 0 1px 0 rgba(255,255,255,0.6);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.envelope-body::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  background:
+    linear-gradient(135deg, transparent 49%, rgba(0,0,0,0.05) 49%, rgba(0,0,0,0.05) 51%, transparent 51%),
+    linear-gradient(225deg, transparent 49%, rgba(0,0,0,0.05) 49%, rgba(0,0,0,0.05) 51%, transparent 51%);
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* Envelope flap (triangle) */
+.envelope-flap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60%;
+  background: linear-gradient(160deg, #f0e4d0 0%, #e6d8c0 100%);
+  clip-path: polygon(0 0, 50% 100%, 100% 0);
+  transform-origin: top center;
+  transition: transform 0.4s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  z-index: 3;
+}
+
+/* Envelope seal */
+.envelope-seal {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 28px;
+  height: 28px;
+  background: #d48a8a;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  z-index: 4;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 2px solid #c07070;
+}
+
+.envelope-item.opened .envelope-seal {
+  opacity: 0.3;
+  transform: translate(-50%, -50%) scale(0.8);
+}
+
+/* Closed state - flap down */
+.envelope-flap {
+  transform: rotateX(0deg);
+}
+
+/* Opened state */
+.envelope-item.opened .envelope-flap {
+  transform: rotateX(180deg);
+  opacity: 0.5;
+}
+
+.envelope-item.opened .envelope-body {
+  border-radius: 0 0 6px 6px;
+}
+
+/* Letter */
+.envelope-letter {
+  display: none;
+  position: relative;
+  background: #fefef9;
+  margin: -6px 8px 8px 8px;
+  padding: 14px 16px;
+  border-radius: 2px;
+  box-shadow:
+    0 2px 6px rgba(0,0,0,0.1),
+    inset 0 0 0 1px rgba(0,0,0,0.04);
+  min-height: 60px;
+  z-index: 1;
+  animation: letterSlideIn 0.35s ease forwards;
+  font-family: 'Times New Roman', Georgia, serif;
+}
+
+.envelope-item.opened .envelope-letter {
+  display: block;
+}
+
+/* Letter content */
+.letter-content {
+  width: 100%;
+  min-height: 40px;
+  outline: none;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #3a2a1a;
+  white-space: pre-wrap;
+  word-break: break-word;
+  resize: none;
+}
+
+.letter-content:focus {
+  outline: 1px dashed rgba(100,130,220,0.5);
+  outline-offset: 4px;
+}
+
+/* Letter lines effect */
+.envelope-letter::before {
+  content: '';
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  right: 16px;
+  bottom: 8px;
+  background: repeating-linear-gradient(
+    transparent,
+    transparent 25px,
+    rgba(180,170,160,0.3) 25px,
+    rgba(180,170,160,0.3) 26px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.letter-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* Letter close button */
+.letter-close {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,0.06);
+  color: #7a6a5a;
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  transition: background 0.2s, color 0.2s;
+}
+
+.letter-close:hover {
+  background: rgba(200,60,60,0.15);
+  color: #c0392b;
+}
+
+/* Envelope preview text on closed state */
+.envelope-preview {
+  position: absolute;
+  top: 55%;
+  left: 50%;
+  transform: translate(-50%, 0);
+  font-family: inherit;
+  font-size: 12px;
+  color: #7a6a5a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80%;
+  text-align: center;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* Hover effects */
+.envelope-body:hover {
+  box-shadow:
+    0 4px 14px rgba(0,0,0,0.22),
+    inset 0 1px 0 rgba(255,255,255,0.6);
+}
+
+/* Toolbar position adjustment for envelopes */
+.envelope-item .item-toolbar {
+  z-index: 200;
+}
+
+/* Animation */
+@keyframes letterSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -2,7 +2,7 @@
 import storage from './storage.js';
 import { FRAMES } from './frames.js';
 import {
-  addPhoto, addTextbox, lockAll, unlockAll,
+  addPhoto, addTextbox, addEnvelope, lockAll, unlockAll,
   updateSelectedFrame, getCurrentSeason, getCurrentPage,
   goToPage, addPage, deletePage,
 } from './wall.js';
@@ -174,6 +174,7 @@ function saveSettings() {
 // ── Toolbar buttons ──────────────────────────────────────
 function initToolbarButtons() {
   document.getElementById('addTextBtn').addEventListener('click', addTextbox);
+  document.getElementById('addEnvelopeBtn').addEventListener('click', addEnvelope);
   document.getElementById('lockAllBtn').addEventListener('click', lockAll);
   document.getElementById('unlockAllBtn').addEventListener('click', unlockAll);
 }
