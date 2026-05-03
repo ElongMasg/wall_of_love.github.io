@@ -13,6 +13,9 @@ let isNight = false;
 // Snow
 let snowCanvas, snowCtx, snowFlakes = [], snowAnimId;
 
+// Fireflies
+let fireflyCanvas, fireflyCtx, fireflies = [], fireflyAnimId;
+
 export function initNightMode(wall) {
   wallEl = wall;
 
@@ -26,6 +29,12 @@ export function initNightMode(wall) {
   snowCanvas.style.cssText = 'position:absolute;top:0;left:0;pointer-events:none;z-index:9999;';
   wallEl.appendChild(snowCanvas);
   snowCtx = snowCanvas.getContext('2d');
+
+  fireflyCanvas = document.createElement('canvas');
+  fireflyCanvas.id = 'fireflyCanvas';
+  fireflyCanvas.style.cssText = 'position:absolute;top:0;left:0;pointer-events:none;z-index:9998;';
+  wallEl.appendChild(fireflyCanvas);
+  fireflyCtx = fireflyCanvas.getContext('2d');
 
   document.getElementById('nightModeBtn').addEventListener('click', toggleNight);
   document.getElementById('addLightBtn').addEventListener('click', addLight);
@@ -46,11 +55,14 @@ function toggleNight() {
   if (isNight) {
     syncCanvasSize();
     renderDarkness();
-    if (getCurrentSeason() === 'winter') startSnow();
+    const season = getCurrentSeason();
+    if (season === 'winter') startSnow();
+    if (season === 'summer') startFireflies();
   } else {
     cancelAnimationFrame(animFrameId);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     stopSnow();
+    stopFireflies();
   }
 }
 
@@ -260,4 +272,68 @@ function stopSnow() {
   cancelAnimationFrame(snowAnimId);
   if (snowCtx) snowCtx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
   snowFlakes = [];
+}
+
+function startFireflies() {
+  fireflyCanvas.width  = wallEl.offsetWidth;
+  fireflyCanvas.height = wallEl.scrollHeight;
+  fireflyCanvas.style.width  = wallEl.offsetWidth + 'px';
+  fireflyCanvas.style.height = wallEl.scrollHeight + 'px';
+
+  fireflies = Array.from({ length: 8 }, () => ({
+    x: Math.random() * fireflyCanvas.width,
+    y: Math.random() * fireflyCanvas.height,
+    r: Math.random() * 3 + 2,
+    glow: Math.random() * 12 + 8,
+    speedX: (Math.random() - 0.5) * 0.6,
+    speedY: (Math.random() - 0.5) * 0.6 - 0.2,
+    phase: Math.random() * Math.PI * 2,
+    pulseSpeed: Math.random() * 0.03 + 0.015,
+    hue: Math.random() * 20 + 60,
+  }));
+
+  function tick() {
+    fireflyCtx.clearRect(0, 0, fireflyCanvas.width, fireflyCanvas.height);
+
+    for (const f of fireflies) {
+      f.phase += f.pulseSpeed;
+      f.x += f.speedX + Math.sin(f.phase * 0.7) * 0.3;
+      f.y += f.speedY + Math.cos(f.phase * 1.1) * 0.2;
+
+      if (f.x > fireflyCanvas.width + 20) f.x = -20;
+      if (f.x < -20) f.x = fireflyCanvas.width + 20;
+      if (f.y > fireflyCanvas.height + 20) f.y = -20;
+      if (f.y < -20) f.y = fireflyCanvas.height + 20;
+
+      const alpha = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(f.phase));
+      const gx = f.x;
+      const gy = f.y;
+
+      // Outer halo
+      const halo = fireflyCtx.createRadialGradient(gx, gy, 0, gx, gy, f.glow);
+      halo.addColorStop(0, `hsla(${f.hue}, 90%, 70%, ${alpha})`);
+      halo.addColorStop(0.4, `hsla(${f.hue}, 80%, 55%, ${alpha * 0.6})`);
+      halo.addColorStop(1, 'transparent');
+
+      fireflyCtx.beginPath();
+      fireflyCtx.arc(gx, gy, f.glow, 0, Math.PI * 2);
+      fireflyCtx.fillStyle = halo;
+      fireflyCtx.fill();
+
+      // Core glow
+      fireflyCtx.beginPath();
+      fireflyCtx.arc(gx, gy, f.r, 0, Math.PI * 2);
+      fireflyCtx.fillStyle = `hsla(${f.hue}, 100%, 85%, ${alpha})`;
+      fireflyCtx.fill();
+    }
+
+    fireflyAnimId = requestAnimationFrame(tick);
+  }
+  tick();
+}
+
+function stopFireflies() {
+  cancelAnimationFrame(fireflyAnimId);
+  if (fireflyCtx) fireflyCtx.clearRect(0, 0, fireflyCanvas.width, fireflyCanvas.height);
+  fireflies = [];
 }
