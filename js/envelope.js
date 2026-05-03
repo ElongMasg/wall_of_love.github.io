@@ -24,13 +24,7 @@ export function createEnvelopeElement(item, onUpdate, onSelect, onDelete) {
 
   const seal = document.createElement('div');
   seal.className = 'envelope-seal';
-  seal.innerHTML = '&#10084;&#65039;';
   body.appendChild(seal);
-
-  const preview = document.createElement('div');
-  preview.className = 'envelope-preview';
-  preview.textContent = (item.letterContent || '').slice(0, 20) || '';
-  body.appendChild(preview);
 
   el.appendChild(body);
 
@@ -235,7 +229,6 @@ function openLetterModal(item, onUpdate, envelopeEl) {
     item.fontSize = parseInt(sizeInput.value);
     item.color = colorInput.value;
     onUpdate(item);
-    updatePreview(envelopeEl, item);
     // Flash saved indicator
     savedHint.classList.add('show');
     setTimeout(() => savedHint.classList.remove('show'), 1500);
@@ -300,13 +293,6 @@ function applyLetterStyle(el, { fontFamily, fontSize, color }) {
   el.style.fontFamily = fontFamily || 'Times New Roman, Georgia, serif';
   el.style.fontSize = (fontSize || 17) + 'px';
   el.style.color = color || '#3a2a1a';
-}
-
-function updatePreview(el, item) {
-  const preview = el.querySelector('.envelope-preview');
-  if (preview) {
-    preview.textContent = (item.letterContent || '').slice(0, 20) || '';
-  }
 }
 
 function buildEnvelopeToolbar(item) {
