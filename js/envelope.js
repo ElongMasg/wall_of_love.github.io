@@ -103,196 +103,87 @@ export function createEnvelopeElement(item, onUpdate, onSelect, onDelete) {
   return el;
 }
 
-// ── Letter Modal ──────────────────────────────────────────
+// ── Letter Viewer ─────────────────────────────────────────
 
 function openLetterModal(item, onUpdate, envelopeEl) {
-  // Remove any existing modal
-  const existing = document.querySelector('.letter-modal-overlay');
+  const existing = document.querySelector('.letter-viewer-overlay');
   if (existing) existing.remove();
 
+  const imgSrc = item.letterImage;
+  if (!imgSrc) {
+    alert('这封信还没有关联的手写图片。');
+    return;
+  }
+
   const overlay = document.createElement('div');
-  overlay.className = 'letter-modal-overlay';
+  overlay.className = 'letter-viewer-overlay';
 
-  const paper = document.createElement('div');
-  paper.className = 'letter-modal-paper';
+  const stage = document.createElement('div');
+  stage.className = 'letter-viewer-stage';
 
-  // Header
-  const header = document.createElement('div');
-  header.className = 'letter-modal-header';
+  const img = document.createElement('img');
+  img.className = 'letter-viewer-image';
+  img.src = imgSrc;
+  img.alt = '手写信';
+  img.draggable = false;
 
-  const title = document.createElement('span');
-  title.className = 'letter-modal-title';
-  title.textContent = '💌 亲笔信';
-
-  const savedHint = document.createElement('span');
-  savedHint.className = 'letter-saved-indicator';
-  savedHint.textContent = '✓ 已保存';
+  stage.appendChild(img);
+  overlay.appendChild(stage);
 
   const closeBtn = document.createElement('button');
-  closeBtn.className = 'letter-modal-close';
+  closeBtn.className = 'letter-viewer-close';
   closeBtn.innerHTML = '&#10005;';
   closeBtn.title = '关闭';
+  overlay.appendChild(closeBtn);
 
-  header.appendChild(title);
-  header.appendChild(savedHint);
-  header.appendChild(closeBtn);
-  paper.appendChild(header);
-
-  // Format bar
-  const formatBar = document.createElement('div');
-  formatBar.className = 'letter-format-bar';
-
-  const fontFamily = item.fontFamily || 'Times New Roman, Georgia, serif';
-  const fontSize = item.fontSize || 17;
-  const color = item.color || '#3a2a1a';
-
-  const fonts = [
-    'Times New Roman, Georgia, serif',
-    'Georgia, serif',
-    'Arial, sans-serif',
-    'Verdana, sans-serif',
-    'Courier New, monospace',
-  ];
-  const fontSelect = document.createElement('select');
-  fontSelect.innerHTML = fonts.map(f =>
-    `<option value="${f}" ${fontFamily === f ? 'selected' : ''}>${f.split(',')[0]}</option>`
-  ).join('');
-
-  const sizeInput = document.createElement('input');
-  sizeInput.type = 'number';
-  sizeInput.value = fontSize;
-  sizeInput.min = 10;
-  sizeInput.max = 48;
-  sizeInput.title = '字号';
-
-  const colorInput = document.createElement('input');
-  colorInput.type = 'color';
-  colorInput.value = color;
-  colorInput.title = '文字颜色';
-
-  formatBar.appendChild(document.createTextNode(''));
-  formatBar.appendChild(fontSelect);
-  formatBar.appendChild(sizeInput);
-  formatBar.appendChild(colorInput);
-  paper.appendChild(formatBar);
-
-  // Content area
-  const body = document.createElement('div');
-  body.className = 'letter-modal-body';
-
-  const content = document.createElement('div');
-  content.className = 'letter-modal-content';
-  content.contentEditable = 'true';
-  content.textContent = item.letterContent || '';
-  applyLetterStyle(content, { fontFamily, fontSize, color });
-  body.appendChild(content);
-  paper.appendChild(body);
-
-  // Footer
-  const footer = document.createElement('div');
-  footer.className = 'letter-modal-footer';
-
-  const closeFooterBtn = document.createElement('button');
-  closeFooterBtn.className = 'letter-btn letter-btn-close';
-  closeFooterBtn.textContent = '关闭';
-
-  const saveBtn = document.createElement('button');
-  saveBtn.className = 'letter-btn letter-btn-save';
-  saveBtn.textContent = '保存';
-
-  footer.appendChild(closeFooterBtn);
-  footer.appendChild(saveBtn);
-  paper.appendChild(footer);
-
-  overlay.appendChild(paper);
   document.body.appendChild(overlay);
 
-  // Show modal
   requestAnimationFrame(() => {
     overlay.classList.add('open');
   });
 
-  // Focus content
-  setTimeout(() => {
-    content.focus();
-    const sel = window.getSelection();
-    const range = document.createRange();
-    range.selectNodeContents(content);
-    sel.removeAllRanges();
-    sel.addRange(range);
-  }, 200);
-
-  // Save handler
-  const doSave = () => {
-    item.letterContent = content.textContent || '';
-    item.fontFamily = fontSelect.value;
-    item.fontSize = parseInt(sizeInput.value);
-    item.color = colorInput.value;
-    onUpdate(item);
-    // Flash saved indicator
-    savedHint.classList.add('show');
-    setTimeout(() => savedHint.classList.remove('show'), 1500);
+  const onAnimationEnd = () => {
+    stage.classList.add('revealed');
+    img.classList.add('revealed');
+    closeBtn.classList.add('visible');
   };
 
-  saveBtn.addEventListener('click', doSave);
-
-  // Keyboard shortcut: Cmd/Ctrl + S
-  overlay.addEventListener('keydown', (e) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === 's') {
-      e.preventDefault();
-      doSave();
+  stage.addEventListener('animationend', (e) => {
+    if (e.animationName === 'letterUnfold') {
+      onAnimationEnd();
     }
   });
 
-  // Close handlers
+  setTimeout(() => {
+    if (!stage.classList.contains('revealed')) {
+      onAnimationEnd();
+    }
+  }, 1800);
+
   const close = () => {
-    overlay.classList.remove('open');
+    overlay.classList.add('closing');
     overlay.addEventListener('transitionend', () => {
       overlay.remove();
     }, { once: true });
-    // Fallback if transitionend doesn't fire
-    setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 400);
+    setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 500);
   };
 
+  stage.addEventListener('click', (e) => {
+    if (!stage.classList.contains('revealed')) return;
+    e.stopPropagation();
+    stage.classList.toggle('zoomed');
+  });
+
   closeBtn.addEventListener('click', close);
-  closeFooterBtn.addEventListener('click', close);
-
-  // Click overlay background to close (save first)
   overlay.addEventListener('click', (e) => {
-    if (e.target === overlay) {
-      doSave();
-      close();
-    }
+    if (e.target === overlay) close();
   });
-
-  // Escape to save and close
   overlay.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      doSave();
-      close();
-    }
+    if (e.key === 'Escape') close();
   });
 
-  // Apply style when format controls change
-  fontSelect.addEventListener('change', () => {
-    applyLetterStyle(content, {
-      fontFamily: fontSelect.value,
-      fontSize: parseInt(sizeInput.value),
-      color: colorInput.value,
-    });
-  });
-  sizeInput.addEventListener('input', () => {
-    content.style.fontSize = sizeInput.value + 'px';
-  });
-  colorInput.addEventListener('input', () => {
-    content.style.color = colorInput.value;
-  });
-}
-
-function applyLetterStyle(el, { fontFamily, fontSize, color }) {
-  el.style.fontFamily = fontFamily || 'Times New Roman, Georgia, serif';
-  el.style.fontSize = (fontSize || 17) + 'px';
-  el.style.color = color || '#3a2a1a';
+  overlay.tabIndex = 0;
+  overlay.focus();
 }
 
 function buildEnvelopeToolbar(item) {

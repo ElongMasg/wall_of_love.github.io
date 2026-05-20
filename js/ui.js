@@ -171,10 +171,75 @@ function saveSettings() {
   document.getElementById('settingsModal').classList.remove('open');
 }
 
+// ── Letter picker ─────────────────────────────────────────
+
+async function getAvailableLetters() {
+  try {
+    const res = await fetch('data/config.json');
+    const data = await res.json();
+    return data?.letters || [];
+  } catch {
+    const config = storage.getConfig();
+    return config?.letters || [];
+  }
+}
+
+async function handleAddEnvelope() {
+  const letters = await getAvailableLetters();
+  if (!letters.length) {
+    alert('暂无手写信图片。请将图片放入 assets/letter/ 并在 config.json 的 letters 中添加路径。');
+    return;
+  }
+  if (letters.length === 1) {
+    addEnvelope(letters[0]);
+    return;
+  }
+  showLetterPickerModal(letters);
+}
+
+function showLetterPickerModal(letters) {
+  const existing = document.querySelector('.letter-picker-overlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay letter-picker-overlay open';
+  overlay.innerHTML = `
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>选择手写信</h2>
+        <button class="modal-close letter-picker-close">×</button>
+      </div>
+      <div class="photo-grid-container">
+        ${letters.map((src, i) => `
+          <div class="photo-thumb letter-pick-thumb" data-src="${src}" title="手写信 ${i + 1}">
+            <img src="${src}" alt="手写信 ${i + 1}" loading="lazy">
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const close = () => overlay.remove();
+  overlay.querySelector('.letter-picker-close').addEventListener('click', close);
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) close();
+  });
+
+  overlay.querySelectorAll('.letter-pick-thumb').forEach(thumb => {
+    thumb.addEventListener('click', () => {
+      const src = thumb.dataset.src;
+      close();
+      addEnvelope(src);
+    });
+  });
+}
+
 // ── Toolbar buttons ──────────────────────────────────────
 function initToolbarButtons() {
   document.getElementById('addTextBtn').addEventListener('click', addTextbox);
-  document.getElementById('addEnvelopeBtn').addEventListener('click', addEnvelope);
+  document.getElementById('addEnvelopeBtn').addEventListener('click', () => handleAddEnvelope());
   document.getElementById('lockAllBtn').addEventListener('click', lockAll);
   document.getElementById('unlockAllBtn').addEventListener('click', unlockAll);
 }

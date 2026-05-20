@@ -170,7 +170,7 @@ export function addTextbox() {
   }, 50);
 }
 
-export function addEnvelope() {
+export function addEnvelope(letterImage) {
   const id = `env-${Date.now()}`;
   const scrollY = window.scrollY;
   const item = {
@@ -179,10 +179,7 @@ export function addEnvelope() {
     y: scrollY + 150 + Math.random() * 150,
     width: 160,
     rotation: (Math.random() * 6) - 3,
-    letterContent: '',
-    fontFamily: 'Times New Roman, Georgia, serif',
-    fontSize: 17,
-    color: '#3a2a1a',
+    letterImage: letterImage || '',
     locked: false,
     z: storage.nextZ(),
   };

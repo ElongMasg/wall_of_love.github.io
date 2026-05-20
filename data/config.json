@@ -32,5 +32,8 @@
   "musicFolder": "assets/music/",
   "musicTracks": [
     "普通朋友 - 陶喆.mp3"
+  ],
+  "letters": [
+    "assets/letter/260520.jpg"
   ]
 }

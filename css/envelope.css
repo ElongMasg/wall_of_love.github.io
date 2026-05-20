@@ -82,247 +82,181 @@
 }
 
 /* ═══════════════════════════════════════════════════════
-   Letter Modal Overlay
+   Letter Viewer — image-based with unfolding animation
    ═══════════════════════════════════════════════════════ */
-.letter-modal-overlay {
-  display: none;
+.letter-viewer-overlay {
+  display: flex;
   position: fixed;
   inset: 0;
-  background: rgba(20, 12, 6, 0.65);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(20, 12, 6, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   z-index: 9900;
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.35s ease;
 }
 
-.letter-modal-overlay.open {
-  display: flex;
+.letter-viewer-overlay.open {
   opacity: 1;
 }
 
-/* Letter paper container */
-.letter-modal-paper {
+.letter-viewer-overlay.closing {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Stage for the unfolding animation */
+.letter-viewer-stage {
   position: relative;
-  width: min(700px, 90vw);
-  max-height: 85vh;
-  background: #faf8f2;
-  background-image:
-    linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px);
-  background-size: 28px 28px;
-  border-radius: 2px;
-  box-shadow:
-    0 8px 40px rgba(0,0,0,0.35),
-    0 2px 6px rgba(0,0,0,0.1),
-    inset 0 0 0 1px rgba(0,0,0,0.06);
-  padding: 0;
-  transform: rotate(-0.5deg);
-  animation: paperAppear 0.4s ease forwards;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-@keyframes paperAppear {
-  from {
-    opacity: 0;
-    transform: rotate(-0.5deg) scale(0.9) translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: rotate(-0.5deg) scale(1) translateY(0);
-  }
-}
-
-/* Letter header */
-.letter-modal-header {
+  width: min(90vw, 700px);
+  aspect-ratio: 3 / 4;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 16px 24px 12px;
-  border-bottom: 1px solid rgba(0,0,0,0.08);
-  flex-shrink: 0;
+  justify-content: center;
+  animation: letterUnfold 1.4s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+  transform-origin: center center;
 }
 
-.letter-modal-title {
-  font-family: 'Times New Roman', Georgia, serif;
-  font-size: 1.1rem;
-  color: #5a4a3a;
-  font-style: italic;
+/* The letter image */
+.letter-viewer-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 2px;
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.5),
+    0 1px 4px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  transform: scale(0.85);
+  transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.25, 0.1, 0.25, 1),
+              box-shadow 0.6s ease;
 }
 
-.letter-modal-close {
-  width: 32px;
-  height: 32px;
+.letter-viewer-image.revealed {
+  opacity: 1;
+  transform: scale(1);
+  box-shadow:
+    0 12px 48px rgba(0, 0, 0, 0.45),
+    0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Close button */
+.letter-viewer-close {
+  position: fixed;
+  top: 20px;
+  right: 24px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   border: none;
-  background: rgba(0,0,0,0.06);
-  color: #7a6a5a;
-  font-size: 18px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 22px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s, color 0.2s;
-}
-
-.letter-modal-close:hover {
-  background: rgba(200,60,60,0.15);
-  color: #c0392b;
-}
-
-/* Letter body / content area */
-.letter-modal-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: 24px 28px;
-  min-height: 200px;
-}
-
-.letter-modal-content {
-  width: 100%;
-  min-height: 180px;
-  outline: none;
-  border: none;
-  background: transparent;
-  font-family: 'Times New Roman', Georgia, serif;
-  font-size: 17px;
-  line-height: 28px;
-  color: #3a2a1a;
-  white-space: pre-wrap;
-  word-break: break-word;
-  padding: 0;
-}
-
-.letter-modal-content:focus {
-  outline: none;
-}
-
-.letter-modal-content:empty::before {
-  content: '写下你的心里话...';
-  color: #c0b0a0;
-  pointer-events: none;
-}
-
-/* Letter footer / actions */
-.letter-modal-footer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-  padding: 12px 24px 16px;
-  border-top: 1px solid rgba(0,0,0,0.08);
-  flex-shrink: 0;
-}
-
-.letter-btn {
-  padding: 8px 22px;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  font-family: 'Times New Roman', Georgia, serif;
-  cursor: pointer;
-  border: 1px solid rgba(0,0,0,0.15);
-  transition: all 0.2s;
-}
-
-.letter-btn-save {
-  background: #5a3a2a;
-  color: #faf5ef;
-  border-color: transparent;
-}
-
-.letter-btn-save:hover {
-  background: #7a5a3a;
-}
-
-.letter-btn-close {
-  background: transparent;
-  color: #7a6a5a;
-}
-
-.letter-btn-close:hover {
-  background: rgba(0,0,0,0.06);
-}
-
-/* Saved indicator */
-.letter-saved-indicator {
-  position: absolute;
-  top: 12px;
-  right: 52px;
-  font-size: 0.8rem;
-  color: #7a9a5a;
   opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
+  transform: scale(0.8);
+  transition: opacity 0.3s ease, transform 0.3s ease, background 0.2s;
+  z-index: 9901;
 }
 
-.letter-saved-indicator.show {
+.letter-viewer-close.visible {
   opacity: 1;
+  transform: scale(1);
 }
 
-/* Formatting mini-toolbar inside letter modal */
-.letter-format-bar {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 24px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: rgba(0,0,0,0.02);
-  flex-shrink: 0;
+.letter-viewer-close:hover {
+  background: rgba(255, 255, 255, 0.25);
 }
 
-.letter-format-bar select,
-.letter-format-bar input[type="number"],
-.letter-format-bar input[type="color"] {
-  height: 28px;
-  padding: 0 8px;
-  border-radius: 4px;
-  border: 1px solid rgba(0,0,0,0.15);
-  background: #fff;
-  color: #3a2a1a;
-  font-size: 0.8rem;
-  font-family: inherit;
+/* ── Unfolding keyframe ────────────────────────────────── */
+
+@keyframes letterUnfold {
+  0% {
+    opacity: 0;
+    transform: scale(0.25) rotate(-3deg);
+  }
+  8% {
+    opacity: 1;
+    transform: scale(0.28) rotate(-2deg);
+  }
+  20% {
+    transform: scale(0.32) rotate(-1deg);
+  }
+  40% {
+    transform: scale(0.38) rotate(0deg);
+  }
+  55% {
+    transform: scale(0.45) rotate(0.5deg);
+  }
+  70% {
+    transform: scale(0.6) rotate(0deg);
+  }
+  85% {
+    transform: scale(0.85) rotate(0deg);
+  }
+  100% {
+    transform: scale(0.9) rotate(0deg);
+  }
 }
 
-.letter-format-bar select {
-  min-width: 100px;
+/* ── Image hover once revealed ──────────────────────────── */
+
+.letter-viewer-image.revealed:hover {
+  transform: scale(1.02);
+  box-shadow:
+    0 16px 56px rgba(0, 0, 0, 0.5),
+    0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.letter-format-bar input[type="number"] {
-  width: 52px;
+/* ── Click to zoom ─────────────────────────────────────── */
+
+.letter-viewer-stage.revealed {
+  cursor: zoom-in;
 }
 
-.letter-format-bar input[type="color"] {
-  width: 28px;
-  padding: 2px;
-  cursor: pointer;
+.letter-viewer-stage.zoomed {
+  cursor: zoom-out;
+  width: min(95vw, 95vh);
+  max-width: 1200px;
+  aspect-ratio: auto;
+  height: 90vh;
+  z-index: 9902;
 }
 
-.letter-format-label {
-  font-size: 0.75rem;
-  color: #9a8a7a;
-  margin-right: 2px;
+.letter-viewer-stage.zoomed .letter-viewer-image {
+  object-fit: contain;
+  width: 100%;
+  height: 100%;
+  box-shadow:
+    0 20px 64px rgba(0, 0, 0, 0.55),
+    0 4px 16px rgba(0, 0, 0, 0.25);
 }
 
-/* Mobile responsive */
+/* Mobile */
 @media (max-width: 600px) {
-  .letter-modal-paper {
-    width: 95vw;
-    max-height: 90vh;
+  .letter-viewer-stage {
+    width: 94vw;
+    aspect-ratio: 3 / 4.2;
   }
-  .letter-modal-body {
-    padding: 18px 16px;
+
+  .letter-viewer-close {
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
   }
-  .letter-modal-content {
-    font-size: 16px;
-    line-height: 26px;
-  }
-  .letter-modal-header,
-  .letter-modal-footer {
-    padding-left: 16px;
-    padding-right: 16px;
+
+  @keyframes letterUnfold {
+    0%   { opacity: 0; transform: scale(0.2) rotate(-2deg); }
+    8%   { opacity: 1; transform: scale(0.24) rotate(-1deg); }
+    40%  { transform: scale(0.35) rotate(0deg); }
+    70%  { transform: scale(0.55) rotate(0deg); }
+    100% { transform: scale(0.88) rotate(0deg); }
   }
 }

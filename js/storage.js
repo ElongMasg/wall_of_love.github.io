@@ -78,6 +78,8 @@ const storage = {
         // Music folder and tracks
         musicFolder: data.musicFolder ?? 'assets/music/',
         musicTracks: data.musicTracks ?? [],
+        // Letter images from config.json
+        letters: data.letters ?? [],
       });
 
       for (const season of ['spring','summer','autumn','winter']) {
