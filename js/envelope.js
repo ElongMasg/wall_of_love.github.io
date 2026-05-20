@@ -158,19 +158,24 @@ function openLetterModal(item, onUpdate, envelopeEl) {
   overlay.tabIndex = 0;
 
   // Preload image — defer animation until the image is decoded to avoid
-  // jank from decoding a 1.6 MB JPEG mid‑animation on the compositor thread.
+  // jank from decoding a large JPEG mid‑animation on the compositor thread.
   const preloader = new Image();
+  let loadError = false;
   preloader.onload = () => startViewer();
-  preloader.onerror = () => startViewer(); // show whatever we have
+  preloader.onerror = () => { loadError = true; startViewer(); };
   preloader.src = imgSrc;
 
   // If the image is already cached, onload may fire synchronously.
-  if (preloader.complete) {
+  if (preloader.complete && !loadError) {
     startViewer();
   }
 
   function startViewer() {
     img.src = imgSrc;
+    if (loadError) {
+      img.alt = '图片加载失败 — 请检查 assets/letter/ 目录';
+      img.style.opacity = '0.5';
+    }
     document.body.appendChild(overlay);
 
     // Double rAF so the browser processes display:flex before animation starts
