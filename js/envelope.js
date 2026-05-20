@@ -115,6 +115,7 @@ function openLetterModal(item, onUpdate, envelopeEl) {
     return;
   }
 
+  // Build DOM structure
   const overlay = document.createElement('div');
   overlay.className = 'letter-viewer-overlay';
 
@@ -123,7 +124,6 @@ function openLetterModal(item, onUpdate, envelopeEl) {
 
   const img = document.createElement('img');
   img.className = 'letter-viewer-image';
-  img.src = imgSrc;
   img.alt = '手写信';
   img.draggable = false;
 
@@ -136,49 +136,11 @@ function openLetterModal(item, onUpdate, envelopeEl) {
   closeBtn.title = '关闭';
   overlay.appendChild(closeBtn);
 
-  document.body.appendChild(overlay);
-
-  // Show overlay — use double rAF so browser processes display:flex first
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      overlay.classList.add('open');
-    });
-  });
-
-  // After unfold animation (1.4s), enable zoom + show close button
-  const ANIMATION_MS = 1500;
-  let revealed = false;
-
-  const onRevealed = () => {
-    if (revealed) return;
-    revealed = true;
-    stage.classList.add('revealed');
-    img.classList.add('revealed');
-    closeBtn.classList.add('visible');
-  };
-
-  // Listen for animation end as primary trigger
-  stage.addEventListener('animationend', (e) => {
-    if (e.animationName === 'letterUnfold') {
-      onRevealed();
-    }
-  });
-
-  // Fallback timer in case animationend doesn't fire
-  setTimeout(onRevealed, ANIMATION_MS);
-
-  // Close
+  // Close logic
   const close = () => {
     overlay.classList.remove('open');
     setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 350);
   };
-
-  // Click on revealed letter to toggle zoom
-  stage.addEventListener('click', (e) => {
-    if (!stage.classList.contains('revealed')) return;
-    e.stopPropagation();
-    stage.classList.toggle('zoomed');
-  });
 
   closeBtn.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -194,7 +156,58 @@ function openLetterModal(item, onUpdate, envelopeEl) {
   });
 
   overlay.tabIndex = 0;
-  overlay.focus();
+
+  // Preload image — defer animation until the image is decoded to avoid
+  // jank from decoding a 1.6 MB JPEG mid‑animation on the compositor thread.
+  const preloader = new Image();
+  preloader.onload = () => startViewer();
+  preloader.onerror = () => startViewer(); // show whatever we have
+  preloader.src = imgSrc;
+
+  // If the image is already cached, onload may fire synchronously.
+  if (preloader.complete) {
+    startViewer();
+  }
+
+  function startViewer() {
+    img.src = imgSrc;
+    document.body.appendChild(overlay);
+
+    // Double rAF so the browser processes display:flex before animation starts
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        overlay.classList.add('open');
+        overlay.focus();
+      });
+    });
+  }
+
+  // After unfold animation (1.4s), enable zoom + show close button
+  const ANIMATION_MS = 1500;
+  let revealed = false;
+
+  const onRevealed = () => {
+    if (revealed) return;
+    revealed = true;
+    stage.classList.add('revealed');
+    img.classList.add('revealed');
+    closeBtn.classList.add('visible');
+  };
+
+  stage.addEventListener('animationend', (e) => {
+    if (e.animationName === 'letterUnfold') {
+      onRevealed();
+    }
+  });
+
+  setTimeout(onRevealed, ANIMATION_MS);
+
+  // Click on revealed letter to toggle zoom
+  stage.addEventListener('click', (e) => {
+    if (!stage.classList.contains('revealed')) return;
+    e.stopPropagation();
+    stage.classList.toggle('zoomed');
+  });
 }
 
 function buildEnvelopeToolbar(item) {

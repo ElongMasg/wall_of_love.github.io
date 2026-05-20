@@ -100,30 +100,42 @@
   display: flex;
 }
 
-/* Stage for the unfolding animation */
+/* Stage for the unfolding animation.
+   GPU‑accelerated via will-change + translateZ so transforms run on the
+   compositor thread without triggering layout/paint on the main thread. */
 .letter-viewer-stage {
   position: relative;
-  width: min(90vw, 700px);
+  width: min(85vw, 680px);
   aspect-ratio: 3 / 4;
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: letterUnfold 1.4s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+  animation: letterUnfold 1.3s ease-out forwards;
   transform-origin: center center;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translateZ(0);
 }
 
-/* The letter image — always visible, follows stage animation */
+/* Remove GPU hints after animation to free resources */
+.letter-viewer-stage.revealed {
+  will-change: auto;
+  transform: none;
+}
+
+/* The letter image */
 .letter-viewer-image {
   width: 100%;
   height: 100%;
   object-fit: contain;
   border-radius: 2px;
-  background: #faf8f2;
   box-shadow:
     0 4px 24px rgba(0, 0, 0, 0.5),
     0 1px 4px rgba(0, 0, 0, 0.2);
-  transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1),
-              box-shadow 0.5s ease;
+  transition: box-shadow 0.5s ease;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .letter-viewer-image.revealed {
@@ -165,31 +177,22 @@
   background: rgba(255, 255, 255, 0.25);
 }
 
-/* ── Unfolding keyframe ────────────────────────────────── */
+/* ── Unfolding keyframe ──────────────────────────────────
+   Sparse keyframes + ease-out = the browser interpolates
+   smoothly.  Dense keyframes fight the easing curve and
+   cause visible velocity discontinuities ("choppiness"). */
 
 @keyframes letterUnfold {
   0% {
     opacity: 0;
-    transform: scale(0.22) rotate(-3deg);
+    transform: translateZ(0) scale(0.2) rotate(-3deg);
   }
-  10% {
+  12% {
     opacity: 1;
-    transform: scale(0.26) rotate(-2deg);
-  }
-  25% {
-    transform: scale(0.34) rotate(-1deg);
-  }
-  45% {
-    transform: scale(0.48) rotate(0deg);
-  }
-  65% {
-    transform: scale(0.68) rotate(0deg);
-  }
-  82% {
-    transform: scale(0.86) rotate(0deg);
   }
   100% {
-    transform: scale(1) rotate(0deg);
+    opacity: 1;
+    transform: translateZ(0) scale(1) rotate(0deg);
   }
 }
 
@@ -239,12 +242,5 @@
     width: 36px;
     height: 36px;
     font-size: 20px;
-  }
-
-  @keyframes letterUnfold {
-    0%   { opacity: 0; transform: scale(0.18) rotate(-2deg); }
-    10%  { opacity: 1; transform: scale(0.24) rotate(-1deg); }
-    45%  { transform: scale(0.44) rotate(0deg); }
-    100% { transform: scale(1) rotate(0deg); }
   }
 }
