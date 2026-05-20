@@ -138,46 +138,57 @@ function openLetterModal(item, onUpdate, envelopeEl) {
 
   document.body.appendChild(overlay);
 
+  // Show overlay — use double rAF so browser processes display:flex first
   requestAnimationFrame(() => {
-    overlay.classList.add('open');
+    requestAnimationFrame(() => {
+      overlay.classList.add('open');
+    });
   });
 
-  const onAnimationEnd = () => {
+  // After unfold animation (1.4s), enable zoom + show close button
+  const ANIMATION_MS = 1500;
+  let revealed = false;
+
+  const onRevealed = () => {
+    if (revealed) return;
+    revealed = true;
     stage.classList.add('revealed');
     img.classList.add('revealed');
     closeBtn.classList.add('visible');
   };
 
+  // Listen for animation end as primary trigger
   stage.addEventListener('animationend', (e) => {
     if (e.animationName === 'letterUnfold') {
-      onAnimationEnd();
+      onRevealed();
     }
   });
 
-  setTimeout(() => {
-    if (!stage.classList.contains('revealed')) {
-      onAnimationEnd();
-    }
-  }, 1800);
+  // Fallback timer in case animationend doesn't fire
+  setTimeout(onRevealed, ANIMATION_MS);
 
+  // Close
   const close = () => {
-    overlay.classList.add('closing');
-    overlay.addEventListener('transitionend', () => {
-      overlay.remove();
-    }, { once: true });
-    setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 500);
+    overlay.classList.remove('open');
+    setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 350);
   };
 
+  // Click on revealed letter to toggle zoom
   stage.addEventListener('click', (e) => {
     if (!stage.classList.contains('revealed')) return;
     e.stopPropagation();
     stage.classList.toggle('zoomed');
   });
 
-  closeBtn.addEventListener('click', close);
+  closeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    close();
+  });
+
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) close();
   });
+
   overlay.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') close();
   });
